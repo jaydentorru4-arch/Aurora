@@ -1,0 +1,6 @@
+{
+  "name": "Aurora — Your AI Senpai",
+  "description": "Meet Aurora: a clever, cute, expressive, and slightly mischievous Japanese senpai AI companion who talks anime, fashion, tech, and real life.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

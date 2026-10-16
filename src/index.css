@@ -1,0 +1,87 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --aurora-blue: #0B00CF;
+    --aurora-violet: #300A6E;
+    --aurora-coral: #FF2D2B;
+    --aurora-crimson: #C10823;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    color-scheme: dark;
+  }
+
+  body {
+    background-color: #04060F;
+    color: #F8FAFC;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+}
+
+.font-handwriting {
+  font-family: 'Caveat', cursive;
+}
+
+/* Official Gradient CTA */
+.btn-aurora-gradient {
+  background: linear-gradient(135deg, #0B00CF 0%, #300A6E 52%, #C10823 100%);
+  position: relative;
+  z-index: 1;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-aurora-gradient::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(135deg, #1C0EFF 0%, #45109D 52%, #E81333 100%);
+  opacity: 0;
+  z-index: -1;
+  transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-aurora-gradient:hover::before {
+  opacity: 1;
+}
+
+.btn-aurora-gradient:hover {
+  box-shadow: 0 0 24px rgba(11, 0, 207, 0.45), 0 0 16px rgba(255, 45, 43, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-aurora-gradient:active {
+  transform: translateY(0);
+}
+
+/* Subtle card styling */
+.aurora-surface {
+  background: rgba(13, 17, 34, 0.65);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(12px);
+  transition: border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.aurora-surface:hover {
+  border-color: rgba(11, 0, 207, 0.35);
+  box-shadow: 0 10px 30px -10px rgba(11, 0, 207, 0.2), 0 0 15px rgba(193, 8, 35, 0.1);
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #04060F;
+}
+::-webkit-scrollbar-thumb {
+  background: #1B213D;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #2E3867;
+}
