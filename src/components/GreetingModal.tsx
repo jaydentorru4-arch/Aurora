@@ -43,10 +43,10 @@ export const GreetingModal: React.FC<GreetingModalProps> = ({
         <div className="flex items-center gap-3.5 mb-5">
           <div className="w-14 h-14 rounded-2xl overflow-hidden border border-white/20 bg-[#0F142D] shrink-0 shadow-md">
             <img
-              src="/src/assets/images/aurora_hero_portrait_1792173932452.jpg"
+              src="/src/assets/images/Neon Overlook Anime Portrait.png"
               alt="Aurora smiling"
               referrerPolicy="no-referrer"
-              className="w-full h-full object-cover object-[50%_15%] transform scale-125"
+              className="w-full h-full object-cover object-[68%_25%] transform scale-135"
             />
           </div>
           <div>
