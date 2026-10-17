@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, X } from 'lucide-react';
+import { ASSETS } from '../assets';
 
 interface NavbarProps {
   onOpenAuth: (mode: 'login' | 'signup') => void;
@@ -46,7 +47,7 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
           {/* Custom Aurora Logo */}
           <div className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
             <img
-              src="/src/assets/images/aurora logo.png"
+              src={ASSETS.logo}
               alt="Aurora Logo"
               referrerPolicy="no-referrer"
               className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(11,0,207,0.6)]"

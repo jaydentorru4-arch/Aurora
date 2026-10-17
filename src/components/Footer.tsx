@@ -1,4 +1,5 @@
 import React from 'react';
+import { ASSETS } from '../assets';
 
 interface FooterProps {
   onOpenLegal: (topic: 'privacy' | 'terms' | 'contact') => void;
@@ -14,7 +15,7 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegal }) => {
             <div className="flex items-center gap-2.5">
               <div className="w-7 h-7 flex items-center justify-center shrink-0">
                 <img
-                  src="/src/assets/images/aurora logo.png"
+                  src={ASSETS.logo}
                   alt="Aurora Logo"
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-contain filter drop-shadow-[0_0_6px_rgba(11,0,207,0.5)]"

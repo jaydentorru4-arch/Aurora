@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { X, Lock, Mail, User, CheckCircle2, ArrowRight } from 'lucide-react';
+import { ASSETS } from '../assets';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -95,7 +96,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
             <div className="text-center mb-6">
               <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
                 <img
-                  src="/src/assets/images/aurora logo.png"
+                  src={ASSETS.logo}
                   alt="Aurora Logo"
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(11,0,207,0.7)]"

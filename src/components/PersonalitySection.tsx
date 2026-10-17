@@ -1,4 +1,5 @@
 import React from 'react';
+import { ASSETS } from '../assets';
 
 export const PersonalitySection: React.FC = () => {
   return (
@@ -33,7 +34,7 @@ export const PersonalitySection: React.FC = () => {
               />
               <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden border border-white/20 bg-[#070914] shadow-inner">
                 <img
-                  src="/src/assets/images/Neon Overlook Anime Portrait.png"
+                  src={ASSETS.heroBg}
                   alt="Aurora's expressive teasing smile"
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover object-[68%_25%] transform scale-135"

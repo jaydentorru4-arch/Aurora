@@ -1,5 +1,6 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
+import { ASSETS } from '../assets';
 
 interface HeroProps {
   onOpenAuth: (mode: 'login' | 'signup') => void;
@@ -12,7 +13,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenAuth, onExploreGreeting }) => 
       {/* Background Image: Neon Overlook Anime Portrait */}
       <div className="absolute inset-0 z-0">
         <img
-          src="/src/assets/images/Neon Overlook Anime Portrait.png"
+          src={ASSETS.heroBg}
           alt="Aurora overlooking the neon cityscape"
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover object-[72%_center] md:object-[right_center] select-none"
