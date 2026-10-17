@@ -6,6 +6,8 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ onOpenLegal }) => {
+  const [logoSrc, setLogoSrc] = React.useState(ASSETS.logo);
+
   return (
     <footer className="border-t border-white/5 py-12 bg-[#03040A]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -15,7 +17,12 @@ export const Footer: React.FC<FooterProps> = ({ onOpenLegal }) => {
             <div className="flex items-center gap-2.5">
               <div className="w-7 h-7 flex items-center justify-center shrink-0">
                 <img
-                  src={ASSETS.logo}
+                  src={logoSrc}
+                  onError={() => {
+                    if (logoSrc !== ASSETS.logoFallback) {
+                      setLogoSrc(ASSETS.logoFallback);
+                    }
+                  }}
                   alt="Aurora Logo"
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-contain filter drop-shadow-[0_0_6px_rgba(11,0,207,0.5)]"

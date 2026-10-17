@@ -31,6 +31,18 @@ export const TopicDetailModal: React.FC<TopicDetailModalProps> = ({
           aria-hidden="true"
         />
 
+        {/* Subtle real-life topic photo backdrop */}
+        {topic.bgImage && (
+          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none opacity-10">
+            <img
+              src={topic.bgImage}
+              alt={topic.title}
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+
         {/* Close Button */}
         <button
           onClick={onClose}

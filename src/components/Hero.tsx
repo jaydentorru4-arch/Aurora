@@ -8,12 +8,19 @@ interface HeroProps {
 }
 
 export const Hero: React.FC<HeroProps> = ({ onOpenAuth, onExploreGreeting }) => {
+  const [bgSrc, setBgSrc] = React.useState(ASSETS.heroBg);
+
   return (
     <section className="relative min-h-[92vh] flex items-center pt-24 pb-16 md:pt-28 md:pb-20 overflow-hidden bg-[#04060F]">
       {/* Background Image: Neon Overlook Anime Portrait */}
       <div className="absolute inset-0 z-0">
         <img
-          src={ASSETS.heroBg}
+          src={bgSrc}
+          onError={() => {
+            if (bgSrc !== ASSETS.heroBgFallback) {
+              setBgSrc(ASSETS.heroBgFallback);
+            }
+          }}
           alt="Aurora overlooking the neon cityscape"
           referrerPolicy="no-referrer"
           className="w-full h-full object-cover object-[72%_center] md:object-[right_center] select-none"

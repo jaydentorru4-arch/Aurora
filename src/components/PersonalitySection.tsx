@@ -2,6 +2,8 @@ import React from 'react';
 import { ASSETS } from '../assets';
 
 export const PersonalitySection: React.FC = () => {
+  const [portraitSrc, setPortraitSrc] = React.useState(ASSETS.heroBg);
+
   return (
     <section id="about" className="py-24 relative overflow-hidden bg-[#060715]">
       {/* Deep Violet Glow Background */}
@@ -34,7 +36,12 @@ export const PersonalitySection: React.FC = () => {
               />
               <div className="relative w-32 h-32 sm:w-40 sm:h-40 rounded-2xl overflow-hidden border border-white/20 bg-[#070914] shadow-inner">
                 <img
-                  src={ASSETS.heroBg}
+                  src={portraitSrc}
+                  onError={() => {
+                    if (portraitSrc !== ASSETS.heroBgFallback) {
+                      setPortraitSrc(ASSETS.heroBgFallback);
+                    }
+                  }}
                   alt="Aurora's expressive teasing smile"
                   referrerPolicy="no-referrer"
                   className="w-full h-full object-cover object-[68%_25%] transform scale-135"

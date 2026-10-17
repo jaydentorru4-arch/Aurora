@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Navbar } from './components/Navbar';
 import { Hero } from './components/Hero';
+import { PersonalityExpressions } from './components/PersonalityExpressions';
 import { TopicsSection, TopicItem } from './components/TopicsSection';
 import { PersonalitySection } from './components/PersonalitySection';
 import { ClosingCta } from './components/ClosingCta';
@@ -65,6 +66,9 @@ export default function App() {
           onOpenAuth={handleOpenAuth}
           onExploreGreeting={() => setGreetingModalOpen(true)}
         />
+
+        {/* Nine Expressions Section */}
+        <PersonalityExpressions />
 
         {/* Section C: Conversation Topics */}
         <TopicsSection

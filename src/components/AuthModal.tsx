@@ -19,6 +19,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   const [nickname, setNickname] = useState('');
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [logoSrc, setLogoSrc] = useState(ASSETS.logo);
 
   // Sync mode with prop when opened
   React.useEffect(() => {
@@ -47,7 +48,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in">
       <div
-        className="relative w-full max-w-md bg-[#080B1B] border border-white/10 rounded-2xl shadow-2xl p-6 sm:p-8 overflow-hidden"
+        className="relative w-full max-w-sm bg-[#080B1B] border border-white/10 rounded-2xl shadow-2xl p-5 sm:p-6 overflow-hidden"
         role="dialog"
         aria-modal="true"
       >
@@ -93,42 +94,40 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         ) : (
           <div>
             {/* Header & Tabs */}
-            <div className="text-center mb-6">
-              <div className="w-12 h-12 mx-auto mb-3 flex items-center justify-center">
+            <div className="text-center mb-4">
+              <div className="w-10 h-10 mx-auto mb-2 flex items-center justify-center">
                 <img
-                  src={ASSETS.logo}
+                  src={logoSrc}
+                  onError={() => {
+                    if (logoSrc !== ASSETS.logoFallback) {
+                      setLogoSrc(ASSETS.logoFallback);
+                    }
+                  }}
                   alt="Aurora Logo"
                   referrerPolicy="no-referrer"
-                  className="w-full h-full object-contain filter drop-shadow-[0_0_10px_rgba(11,0,207,0.7)]"
+                  className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(11,0,207,0.7)]"
                 />
               </div>
 
-              {/* Architecture Badge */}
-              <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[10px] font-mono uppercase tracking-wider text-[#94A3B8] mb-3">
-                <span>Supabase Auth Ready</span>
-                <span>·</span>
-                <span className="text-[#FF2D2B]">Preview</span>
-              </div>
-
-              <h3 className="text-2xl font-extrabold text-white tracking-tight">
+              <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
                 {mode === 'signup' ? 'Create Your Account' : 'Welcome Back'}
               </h3>
-              <p className="text-xs text-[#94A3B8] mt-1">
+              <p className="text-xs text-[#94A3B8] mt-0.5">
                 {mode === 'signup'
-                  ? 'Connect with Aurora and save your personalized conversation memory.'
+                  ? 'Save your personalized conversation memory.'
                   : 'Log in to continue your conversations with Aurora.'}
               </p>
             </div>
 
             {/* Mode Toggle Switch */}
-            <div className="grid grid-cols-2 p-1 bg-white/[0.04] rounded-xl border border-white/5 mb-6">
+            <div className="grid grid-cols-2 p-1 bg-white/[0.04] rounded-xl border border-white/5 mb-4">
               <button
                 type="button"
                 onClick={() => {
                   setMode('login');
                   setError(null);
                 }}
-                className={`py-2 text-xs font-semibold rounded-lg transition-all ${
+                className={`py-1.5 text-xs font-semibold rounded-lg transition-all ${
                   mode === 'login'
                     ? 'bg-[#0B00CF] text-white shadow-md'
                     : 'text-[#94A3B8] hover:text-white'
@@ -142,7 +141,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   setMode('signup');
                   setError(null);
                 }}
-                className={`py-2 text-xs font-semibold rounded-lg transition-all ${
+                className={`py-1.5 text-xs font-semibold rounded-lg transition-all ${
                   mode === 'signup'
                     ? 'bg-gradient-to-r from-[#300A6E] to-[#C10823] text-white shadow-md'
                     : 'text-[#94A3B8] hover:text-white'
@@ -214,19 +213,12 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
               <button
                 type="submit"
-                className="btn-aurora-gradient w-full py-3 rounded-xl text-xs font-semibold text-white shadow-lg flex items-center justify-center gap-2 group cursor-pointer mt-2"
+                className="btn-aurora-gradient w-full py-2.5 rounded-xl text-xs font-semibold text-white shadow-md flex items-center justify-center gap-1.5 group cursor-pointer mt-2"
               >
                 <span>{mode === 'signup' ? 'Create Account' : 'Log In'}</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
               </button>
             </form>
-
-            {/* Honest Supabase notice */}
-            <div className="mt-5 text-center">
-              <p className="text-[11px] text-[#64748B] leading-normal">
-                Frontend preview mode. Supabase Auth will securely handle sessions and credential tokens in Phase 2.
-              </p>
-            </div>
           </div>
         )}
       </div>

@@ -9,6 +9,7 @@ interface NavbarProps {
 export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [logoSrc, setLogoSrc] = useState(ASSETS.logo);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -47,7 +48,12 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth }) => {
           {/* Custom Aurora Logo */}
           <div className="relative w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform duration-300">
             <img
-              src={ASSETS.logo}
+              src={logoSrc}
+              onError={() => {
+                if (logoSrc !== ASSETS.logoFallback) {
+                  setLogoSrc(ASSETS.logoFallback);
+                }
+              }}
               alt="Aurora Logo"
               referrerPolicy="no-referrer"
               className="w-full h-full object-contain filter drop-shadow-[0_0_8px_rgba(11,0,207,0.6)]"
