@@ -6,12 +6,14 @@ interface TopicDetailModalProps {
   topic: TopicItem | null;
   onClose: () => void;
   onOpenAuth: (mode: 'signup') => void;
+  onStartChat?: (prompt: string) => void;
 }
 
 export const TopicDetailModal: React.FC<TopicDetailModalProps> = ({
   topic,
   onClose,
-  onOpenAuth
+  onOpenAuth,
+  onStartChat,
 }) => {
   if (!topic) return null;
 
@@ -99,20 +101,33 @@ export const TopicDetailModal: React.FC<TopicDetailModalProps> = ({
           </p>
         </div>
 
-        {/* Actions & Next Phase Notice */}
+        {/* Actions */}
         <div className="pt-4 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3">
           <p className="text-[11px] text-[#64748B]">
-            Interactive chat powered by Gemini AI unlocks in Phase 2.
+            Real-time chat powered by Google Gemini AI.
           </p>
-          <button
-            onClick={() => {
-              onClose();
-              onOpenAuth('signup');
-            }}
-            className="btn-aurora-gradient w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-semibold text-white cursor-pointer whitespace-nowrap"
-          >
-            Get Early Access
-          </button>
+          <div className="flex items-center gap-2.5 w-full sm:w-auto">
+            {onStartChat && (
+              <button
+                onClick={() => {
+                  onClose();
+                  onStartChat(topic.sampleQuestion || `Let's discuss ${topic.title}`);
+                }}
+                className="btn-aurora-gradient w-full sm:w-auto px-5 py-2.5 rounded-xl text-xs font-semibold text-white cursor-pointer whitespace-nowrap shadow-md"
+              >
+                Discuss with Aurora Now →
+              </button>
+            )}
+            <button
+              onClick={() => {
+                onClose();
+                onOpenAuth('signup');
+              }}
+              className="w-full sm:w-auto px-4 py-2.5 rounded-xl text-xs font-semibold text-[#CBD5E1] hover:text-white border border-white/10 hover:bg-white/5 transition-colors cursor-pointer whitespace-nowrap"
+            >
+              Sign up
+            </button>
+          </div>
         </div>
       </div>
     </div>

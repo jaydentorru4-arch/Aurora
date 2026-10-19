@@ -10,13 +10,71 @@ import { AuthModal } from './components/AuthModal';
 import { TopicDetailModal } from './components/TopicDetailModal';
 import { GreetingModal } from './components/GreetingModal';
 import { LegalModal } from './components/LegalModals';
+import { Dashboard } from './components/dashboard/Dashboard';
+import { ChatbotWidget } from './components/ChatbotWidget';
 
 export default function App() {
+  const getInitialView = (): 'home' | 'dashboard' => {
+    if (typeof window !== 'undefined') {
+      const p = window.location.pathname;
+      const h = window.location.hash;
+      if (
+        p === '/dashboard' ||
+        p.startsWith('/dashboard') ||
+        h === '#dashboard' ||
+        h.startsWith('#/dashboard') ||
+        h === '#chat'
+      ) {
+        return 'dashboard';
+      }
+    }
+    return 'home';
+  };
+
+  const [currentView, setCurrentView] = useState<'home' | 'dashboard'>(getInitialView);
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('signup');
   const [greetingModalOpen, setGreetingModalOpen] = useState(false);
   const [selectedTopic, setSelectedTopic] = useState<TopicItem | null>(null);
   const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | 'contact' | null>(null);
+  const [chatbotOpen, setChatbotOpen] = useState(false);
+  const [chatbotInitialPrompt, setChatbotInitialPrompt] = useState<string | null>(null);
+
+  // Sync with browser navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const p = window.location.pathname;
+      const h = window.location.hash;
+      if (
+        p === '/dashboard' ||
+        p.startsWith('/dashboard') ||
+        h === '#dashboard' ||
+        h.startsWith('#/dashboard') ||
+        h === '#chat'
+      ) {
+        setCurrentView('dashboard');
+      } else {
+        setCurrentView('home');
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handlePopState);
+    };
+  }, []);
+
+  const navigateTo = (view: 'home' | 'dashboard') => {
+    setCurrentView(view);
+    if (typeof window !== 'undefined') {
+      if (view === 'dashboard') {
+        window.history.pushState({}, '', '/dashboard');
+      } else {
+        window.history.pushState({}, '', '/');
+      }
+    }
+  };
 
   const handleOpenAuth = (mode: 'login' | 'signup') => {
     setAuthMode(mode);
@@ -44,6 +102,12 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // Dedicated Dashboard View
+  if (currentView === 'dashboard') {
+    return <Dashboard onBackToHome={() => navigateTo('home')} />;
+  }
+
+  // Approved Existing Homepage
   return (
     <div className="min-h-screen bg-[#04060F] text-[#F8FAFC] selection:bg-[#0B00CF] selection:text-white relative">
       {/* Global Subtle Grid Texture */}
@@ -51,13 +115,17 @@ export default function App() {
         className="fixed inset-0 pointer-events-none opacity-[0.025]"
         style={{
           backgroundImage: `radial-gradient(rgba(255, 255, 255, 0.4) 1px, transparent 1px)`,
-          backgroundSize: '24px 24px'
+          backgroundSize: '24px 24px',
         }}
         aria-hidden="true"
       />
 
       {/* Top Navigation */}
-      <Navbar onOpenAuth={handleOpenAuth} />
+      <Navbar
+        onOpenAuth={handleOpenAuth}
+        onOpenDashboard={() => navigateTo('dashboard')}
+        onOpenChatbot={() => setChatbotOpen(true)}
+      />
 
       {/* Main Content Flow */}
       <main>
@@ -93,6 +161,7 @@ export default function App() {
         isOpen={authModalOpen}
         initialMode={authMode}
         onClose={() => setAuthModalOpen(false)}
+        onOpenDashboard={() => navigateTo('dashboard')}
       />
 
       <GreetingModal
@@ -100,17 +169,33 @@ export default function App() {
         onClose={() => setGreetingModalOpen(false)}
         onOpenAuth={(mode) => handleOpenAuth(mode)}
         onScrollToTopics={handleScrollToTopics}
+        onOpenDashboard={() => navigateTo('dashboard')}
+        onOpenChatbot={() => setChatbotOpen(true)}
       />
 
       <TopicDetailModal
         topic={selectedTopic}
         onClose={() => setSelectedTopic(null)}
         onOpenAuth={(mode) => handleOpenAuth(mode)}
+        onStartChat={(prompt) => {
+          setSelectedTopic(null);
+          setChatbotInitialPrompt(prompt);
+          setChatbotOpen(true);
+        }}
       />
 
       <LegalModal
         type={legalModalType}
         onClose={() => setLegalModalType(null)}
+      />
+
+      {/* Floating Aurora AI Chatbot Widget */}
+      <ChatbotWidget
+        externalOpen={chatbotOpen}
+        onCloseExternal={() => setChatbotOpen(false)}
+        onOpenDashboard={() => navigateTo('dashboard')}
+        initialPrompt={chatbotInitialPrompt}
+        onPromptConsumed={() => setChatbotInitialPrompt(null)}
       />
     </div>
   );

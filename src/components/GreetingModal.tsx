@@ -7,13 +7,17 @@ interface GreetingModalProps {
   onClose: () => void;
   onOpenAuth: (mode: 'signup') => void;
   onScrollToTopics: () => void;
+  onOpenDashboard?: () => void;
+  onOpenChatbot?: () => void;
 }
 
 export const GreetingModal: React.FC<GreetingModalProps> = ({
   isOpen,
   onClose,
   onOpenAuth,
-  onScrollToTopics
+  onScrollToTopics,
+  onOpenDashboard,
+  onOpenChatbot,
 }) => {
   const [avatarSrc, setAvatarSrc] = React.useState(ASSETS.heroBg);
 
@@ -91,23 +95,42 @@ export const GreetingModal: React.FC<GreetingModalProps> = ({
 
         {/* Actions */}
         <div className="flex flex-col sm:flex-row items-center gap-3">
-          <button
-            onClick={() => {
-              onClose();
-              onOpenAuth('signup');
-            }}
-            className="btn-aurora-gradient w-full sm:w-auto flex-1 py-3 rounded-xl text-xs font-semibold text-white cursor-pointer flex items-center justify-center gap-2 group"
-          >
-            <span>Claim Early Access</span>
-            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-          </button>
+          {onOpenChatbot && (
+            <button
+              onClick={() => {
+                onClose();
+                onOpenChatbot();
+              }}
+              className="btn-aurora-gradient w-full sm:w-auto flex-1 py-3 rounded-xl text-xs font-semibold text-white cursor-pointer flex items-center justify-center gap-2 group"
+            >
+              <span>Chat with Aurora Now</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+          )}
+
+          {onOpenDashboard && (
+            <button
+              onClick={() => {
+                onClose();
+                onOpenDashboard();
+              }}
+              className={`${
+                onOpenChatbot
+                  ? 'w-full sm:w-auto px-4 py-3 rounded-xl text-xs font-semibold text-white bg-[#0B00CF]/30 border border-[#0B00CF]/60 hover:bg-[#0B00CF]/50 transition-colors'
+                  : 'btn-aurora-gradient w-full sm:w-auto flex-1 py-3 rounded-xl text-xs font-semibold text-white'
+              } cursor-pointer flex items-center justify-center gap-2 group`}
+            >
+              <span>Launch AI Dashboard</span>
+              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+            </button>
+          )}
 
           <button
             onClick={() => {
               onClose();
               onScrollToTopics();
             }}
-            className="w-full sm:w-auto px-5 py-3 rounded-xl text-xs font-semibold text-[#CBD5E1] hover:text-white border border-white/10 hover:border-white/20 hover:bg-white/5 transition-colors cursor-pointer text-center"
+            className="w-full sm:w-auto px-4 py-3 rounded-xl text-xs font-semibold text-[#CBD5E1] hover:text-white border border-white/10 hover:border-white/20 hover:bg-white/5 transition-colors cursor-pointer text-center"
           >
             Explore Topics
           </button>

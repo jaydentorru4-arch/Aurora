@@ -6,12 +6,14 @@ interface AuthModalProps {
   isOpen: boolean;
   initialMode: 'login' | 'signup';
   onClose: () => void;
+  onOpenDashboard?: () => void;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
   isOpen,
   initialMode,
-  onClose
+  onClose,
+  onOpenDashboard,
 }) => {
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
   const [email, setEmail] = useState('');
@@ -84,12 +86,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <span className="text-[#94A3B8] block text-[10px] uppercase tracking-wider mb-1">Architecture note:</span>
               Auth endpoints will hook directly into Supabase JWT sessions & OAuth providers.
             </div>
-            <button
-              onClick={onClose}
-              className="btn-aurora-gradient w-full py-3 rounded-xl text-xs font-semibold text-white cursor-pointer"
-            >
-              Back to Aurora
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2.5">
+              {onOpenDashboard && (
+                <button
+                  onClick={() => {
+                    onClose();
+                    onOpenDashboard();
+                  }}
+                  className="btn-aurora-gradient flex-1 py-3 rounded-xl text-xs font-semibold text-white cursor-pointer"
+                >
+                  Enter AI Dashboard
+                </button>
+              )}
+              <button
+                onClick={onClose}
+                className="px-4 py-3 rounded-xl text-xs font-semibold text-[#94A3B8] hover:text-white border border-white/10 hover:bg-white/5 transition-colors cursor-pointer"
+              >
+                Back to Aurora
+              </button>
+            </div>
           </div>
         ) : (
           <div>
