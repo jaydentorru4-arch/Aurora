@@ -13,6 +13,7 @@ import {
   Home,
   Sparkles,
   AlertTriangle,
+  Mic,
 } from 'lucide-react';
 import { Conversation, PersonalitySettings } from '../../types/dashboard';
 import { ASSETS } from '../../assets';
@@ -25,6 +26,7 @@ interface DashboardSidebarProps {
   onRenameConversation: (id: string, newTitle: string) => void;
   onDeleteConversation: (id: string) => void;
   onOpenSettings: () => void;
+  onOpenAudioTranscriber?: () => void;
   onBackToHome: () => void;
   settings: PersonalitySettings;
   isCollapsed: boolean;
@@ -41,6 +43,7 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   onRenameConversation,
   onDeleteConversation,
   onOpenSettings,
+  onOpenAudioTranscriber,
   onBackToHome,
   settings,
   isCollapsed,
@@ -401,7 +404,21 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
         {/* Bottom Actions & User Account Area */}
         <div className="p-3 border-t border-white/5 bg-[#05060A] shrink-0 space-y-1">
-          {/* Settings Button */}
+          {/* Audio Transcriber Button */}
+          {onOpenAudioTranscriber && (
+            <button
+              onClick={onOpenAudioTranscriber}
+              title="Transcribe Audio with gemini-3.5-transcribe"
+              className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-[#94A3B8] hover:text-white hover:bg-white/5 transition-all cursor-pointer ${
+                isCollapsed ? 'justify-center' : 'justify-start'
+              }`}
+            >
+              <Mic className="w-4 h-4 shrink-0 text-[#FF2D2B]" />
+              {!isCollapsed && <span>Audio Transcriber</span>}
+            </button>
+          )}
+
+          {/* Personality & Settings Button */}
           <button
             onClick={onOpenSettings}
             title="Aurora Settings"

@@ -12,6 +12,8 @@ import { GreetingModal } from './components/GreetingModal';
 import { LegalModal } from './components/LegalModals';
 import { Dashboard } from './components/dashboard/Dashboard';
 import { ChatbotWidget } from './components/ChatbotWidget';
+import { AdminPanelModal } from './components/AdminPanelModal';
+import { UserProfile, DEFAULT_ADMIN_USER } from './types/auth';
 
 export default function App() {
   const getInitialView = (): 'home' | 'dashboard' => {
@@ -38,7 +40,23 @@ export default function App() {
   const [selectedTopic, setSelectedTopic] = useState<TopicItem | null>(null);
   const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | 'contact' | null>(null);
   const [chatbotOpen, setChatbotOpen] = useState(false);
+  const [chatbotFullScreen, setChatbotFullScreen] = useState(false);
   const [chatbotInitialPrompt, setChatbotInitialPrompt] = useState<string | null>(null);
+
+  const handleComeSayHi = () => {
+    setChatbotFullScreen(true);
+    setChatbotOpen(true);
+  };
+
+  // Authenticated User & Admin State (defaults to Jayden as Admin)
+  const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
+    try {
+      const saved = localStorage.getItem('aurora_current_user');
+      if (saved) return JSON.parse(saved);
+    } catch {}
+    return DEFAULT_ADMIN_USER;
+  });
+  const [adminPanelOpen, setAdminPanelOpen] = useState(false);
 
   // Sync with browser navigation
   useEffect(() => {
@@ -125,6 +143,14 @@ export default function App() {
         onOpenAuth={handleOpenAuth}
         onOpenDashboard={() => navigateTo('dashboard')}
         onOpenChatbot={() => setChatbotOpen(true)}
+        currentUser={currentUser}
+        onOpenAdminPanel={() => setAdminPanelOpen(true)}
+        onLogout={() => {
+          setCurrentUser(null);
+          try {
+            localStorage.removeItem('aurora_current_user');
+          } catch {}
+        }}
       />
 
       {/* Main Content Flow */}
@@ -133,6 +159,7 @@ export default function App() {
         <Hero
           onOpenAuth={handleOpenAuth}
           onExploreGreeting={() => setGreetingModalOpen(true)}
+          onComeSayHi={handleComeSayHi}
         />
 
         {/* Nine Expressions Section */}
@@ -150,6 +177,7 @@ export default function App() {
         <ClosingCta
           onOpenAuth={handleOpenAuth}
           onExploreGreeting={() => setGreetingModalOpen(true)}
+          onComeSayHi={handleComeSayHi}
         />
       </main>
 
@@ -161,7 +189,19 @@ export default function App() {
         isOpen={authModalOpen}
         initialMode={authMode}
         onClose={() => setAuthModalOpen(false)}
-        onOpenDashboard={() => navigateTo('dashboard')}
+        onLoginSuccess={(user) => {
+          setCurrentUser(user);
+          try {
+            localStorage.setItem('aurora_current_user', JSON.stringify(user));
+          } catch {}
+        }}
+        onOpenAdminPanel={() => setAdminPanelOpen(true)}
+      />
+
+      <AdminPanelModal
+        isOpen={adminPanelOpen}
+        onClose={() => setAdminPanelOpen(false)}
+        currentUser={currentUser}
       />
 
       <GreetingModal
@@ -170,7 +210,10 @@ export default function App() {
         onOpenAuth={(mode) => handleOpenAuth(mode)}
         onScrollToTopics={handleScrollToTopics}
         onOpenDashboard={() => navigateTo('dashboard')}
-        onOpenChatbot={() => setChatbotOpen(true)}
+        onOpenChatbot={() => {
+          setChatbotFullScreen(true);
+          setChatbotOpen(true);
+        }}
       />
 
       <TopicDetailModal
@@ -189,10 +232,14 @@ export default function App() {
         onClose={() => setLegalModalType(null)}
       />
 
-      {/* Floating Aurora AI Chatbot Widget */}
+      {/* Floating Aurora AI Chatbot Widget (Supports Windowed & Full-Screen) */}
       <ChatbotWidget
         externalOpen={chatbotOpen}
-        onCloseExternal={() => setChatbotOpen(false)}
+        initialFullScreen={chatbotFullScreen}
+        onCloseExternal={() => {
+          setChatbotOpen(false);
+          setChatbotFullScreen(false);
+        }}
         onOpenDashboard={() => navigateTo('dashboard')}
         initialPrompt={chatbotInitialPrompt}
         onPromptConsumed={() => setChatbotInitialPrompt(null)}

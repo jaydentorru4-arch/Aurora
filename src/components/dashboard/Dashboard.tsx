@@ -13,6 +13,7 @@ import { DashboardSidebar } from './DashboardSidebar';
 import { DashboardChat } from './DashboardChat';
 import { DashboardContextPanel } from './DashboardContextPanel';
 import { DashboardSettingsModal } from './DashboardSettingsModal';
+import { AudioTranscriberModal } from '../AudioTranscriberModal';
 
 interface DashboardProps {
   onBackToHome: () => void;

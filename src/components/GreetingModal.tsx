@@ -108,23 +108,6 @@ export const GreetingModal: React.FC<GreetingModalProps> = ({
             </button>
           )}
 
-          {onOpenDashboard && (
-            <button
-              onClick={() => {
-                onClose();
-                onOpenDashboard();
-              }}
-              className={`${
-                onOpenChatbot
-                  ? 'w-full sm:w-auto px-4 py-3 rounded-xl text-xs font-semibold text-white bg-[#0B00CF]/30 border border-[#0B00CF]/60 hover:bg-[#0B00CF]/50 transition-colors'
-                  : 'btn-aurora-gradient w-full sm:w-auto flex-1 py-3 rounded-xl text-xs font-semibold text-white'
-              } cursor-pointer flex items-center justify-center gap-2 group`}
-            >
-              <span>Launch AI Dashboard</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
-          )}
-
           <button
             onClick={() => {
               onClose();

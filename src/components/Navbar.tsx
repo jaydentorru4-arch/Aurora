@@ -1,14 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Sparkles } from 'lucide-react';
+import { Menu, X, Crown } from 'lucide-react';
 import { ASSETS } from '../assets';
+import { UserProfile } from '../types/auth';
 
 interface NavbarProps {
   onOpenAuth: (mode: 'login' | 'signup') => void;
   onOpenDashboard?: () => void;
   onOpenChatbot?: () => void;
+  currentUser?: UserProfile | null;
+  onOpenAdminPanel?: () => void;
+  onLogout?: () => void;
 }
 
-export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth, onOpenDashboard, onOpenChatbot }) => {
+export const Navbar: React.FC<NavbarProps> = ({
+  onOpenAuth,
+  onOpenDashboard,
+  onOpenChatbot,
+  currentUser,
+  onOpenAdminPanel,
+  onLogout,
+}) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [logoSrc, setLogoSrc] = useState(ASSETS.logo);
@@ -90,46 +101,64 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth, onOpenDashboard, onO
 
         {/* Far Right Action Buttons */}
         <div className="hidden md:flex items-center gap-3 shrink-0">
-          {onOpenDashboard && (
-            <button
-              onClick={onOpenDashboard}
-              className="flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-semibold text-white bg-[#0B00CF]/20 hover:bg-[#0B00CF]/40 border border-[#0B00CF]/60 rounded-lg transition-all duration-200 cursor-pointer shadow-[0_0_12px_rgba(11,0,207,0.3)]"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-[#FF2D2B]" />
-              <span>AI Dashboard</span>
-            </button>
+          {currentUser ? (
+            <div className="flex items-center gap-2">
+              {currentUser.role === 'admin' && onOpenAdminPanel && (
+                <button
+                  type="button"
+                  onClick={onOpenAdminPanel}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#FF2D2B]/20 to-[#0B00CF]/20 border border-[#FF2D2B]/50 hover:border-[#FF2D2B] text-xs font-semibold text-white transition-all cursor-pointer shadow-[0_0_12px_rgba(255,45,43,0.35)]"
+                >
+                  <Crown className="w-3.5 h-3.5 text-[#FF2D2B]" />
+                  <span>{currentUser.name} (Admin)</span>
+                </button>
+              )}
+              {onLogout && (
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  className="px-2.5 py-1 text-xs text-[#94A3B8] hover:text-white transition-colors cursor-pointer"
+                >
+                  Log out
+                </button>
+              )}
+            </div>
+          ) : (
+            <>
+              <button
+                onClick={() => onOpenAuth('login')}
+                className="px-4 py-2 text-xs font-semibold text-white/90 rounded-lg border border-white/15 hover:border-white/30 hover:bg-white/5 transition-all duration-200 whitespace-nowrap cursor-pointer"
+              >
+                Log in
+              </button>
+              <button
+                onClick={() => onOpenAuth('signup')}
+                className="btn-aurora-gradient px-4 py-2 text-xs font-semibold text-white rounded-lg whitespace-nowrap cursor-pointer shadow-md"
+              >
+                Sign up
+              </button>
+            </>
           )}
-          <button
-            onClick={() => onOpenAuth('login')}
-            className="px-4 py-2 text-xs font-semibold text-white/90 rounded-lg border border-white/15 hover:border-white/30 hover:bg-white/5 transition-all duration-200 whitespace-nowrap cursor-pointer"
-          >
-            Log in
-          </button>
-          <button
-            onClick={() => onOpenAuth('signup')}
-            className="btn-aurora-gradient px-4 py-2 text-xs font-semibold text-white rounded-lg whitespace-nowrap cursor-pointer shadow-md"
-          >
-            Sign up
-          </button>
         </div>
 
         {/* Mobile Menu Button */}
         <div className="flex md:hidden items-center gap-2">
-          {onOpenDashboard && (
+          {currentUser?.role === 'admin' && onOpenAdminPanel ? (
             <button
-              onClick={onOpenDashboard}
-              className="px-2.5 py-1.5 text-xs font-semibold text-white rounded-md bg-[#0B00CF]/20 border border-[#0B00CF]/50 flex items-center gap-1"
+              onClick={onOpenAdminPanel}
+              className="px-2.5 py-1 text-xs font-semibold text-white rounded-md bg-[#FF2D2B]/20 border border-[#FF2D2B]/40 flex items-center gap-1"
             >
-              <Sparkles className="w-3 h-3 text-[#FF2D2B]" />
-              <span>Chat</span>
+              <Crown className="w-3 h-3 text-[#FF2D2B]" />
+              <span>Admin</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => onOpenAuth('signup')}
+              className="btn-aurora-gradient px-3 py-1.5 text-xs font-semibold text-white rounded-md whitespace-nowrap"
+            >
+              Sign up
             </button>
           )}
-          <button
-            onClick={() => onOpenAuth('signup')}
-            className="btn-aurora-gradient px-3 py-1.5 text-xs font-semibold text-white rounded-md whitespace-nowrap"
-          >
-            Sign up
-          </button>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle navigation menu"
@@ -143,6 +172,18 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth, onOpenDashboard, onO
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-[#070A18] border-b border-white/10 px-6 py-5 mt-2 space-y-4">
+          {currentUser?.role === 'admin' && onOpenAdminPanel && (
+            <button
+              onClick={() => {
+                setMobileMenuOpen(false);
+                onOpenAdminPanel();
+              }}
+              className="w-full py-2.5 text-center text-xs font-semibold text-white rounded-lg bg-[#FF2D2B]/20 border border-[#FF2D2B]/40 flex items-center justify-center gap-2 transition-colors cursor-pointer"
+            >
+              <Crown className="w-4 h-4 text-[#FF2D2B]" />
+              <span>Open Admin Console</span>
+            </button>
+          )}
           {onOpenChatbot && (
             <button
               onClick={() => {
@@ -152,18 +193,6 @@ export const Navbar: React.FC<NavbarProps> = ({ onOpenAuth, onOpenDashboard, onO
               className="w-full py-2.5 text-center text-xs font-semibold text-white rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 flex items-center justify-center gap-2 transition-colors cursor-pointer"
             >
               <span>Chat with Aurora</span>
-            </button>
-          )}
-          {onOpenDashboard && (
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenDashboard();
-              }}
-              className="w-full py-2.5 text-center text-xs font-semibold text-white rounded-lg bg-[#0B00CF]/30 border border-[#0B00CF]/60 hover:bg-[#0B00CF]/50 flex items-center justify-center gap-2 transition-colors cursor-pointer"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-[#FF2D2B]" />
-              <span>Launch AI Dashboard</span>
             </button>
           )}
           <button

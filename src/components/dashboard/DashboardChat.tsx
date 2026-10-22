@@ -14,10 +14,15 @@ import {
   BookOpen,
   Code,
   ArrowUp,
+  Mic,
+  MicOff,
+  Volume2,
 } from 'lucide-react';
 import { Conversation, Message, PersonalitySettings } from '../../types/dashboard';
 import { MarkdownRenderer } from './MarkdownRenderer';
 import { ASSETS } from '../../assets';
+import { useAudioTranscriber } from '../../hooks/useAudioTranscriber';
+import { AudioTranscriberModal } from '../AudioTranscriberModal';
 
 interface DashboardChatProps {
   conversation: Conversation | null;
@@ -45,8 +50,32 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({
   const [input, setInput] = useState('');
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [avatarSrc, setAvatarSrc] = useState(ASSETS.expressions.happy);
+  const [isTranscriberOpen, setIsTranscriberOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const {
+    isRecording,
+    isTranscribing,
+    formattedDuration,
+    error: micError,
+    startRecording,
+    stopAndTranscribe,
+    cancelRecording,
+    clearError: clearMicError,
+  } = useAudioTranscriber();
+
+  const handleMicToggle = async () => {
+    if (isRecording) {
+      const transcript = await stopAndTranscribe();
+      if (transcript) {
+        setInput((prev) => (prev ? `${prev} ${transcript}` : transcript));
+        setTimeout(() => textareaRef.current?.focus(), 100);
+      }
+    } else {
+      await startRecording();
+    }
+  };
 
   const messages = conversation?.messages || [];
   const hasMessages = messages.length > 0;
@@ -171,6 +200,16 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({
 
         {/* Right Header Controls */}
         <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setIsTranscriberOpen(true)}
+            aria-label="Transcribe audio"
+            title="Transcribe Audio with gemini-3.5-transcribe"
+            className="p-2 rounded-xl border border-white/10 hover:border-[#FF2D2B]/50 bg-white/[0.03] hover:bg-white/5 text-[#94A3B8] hover:text-white text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+          >
+            <Mic className="w-4 h-4 text-[#FF2D2B]" />
+            <span className="hidden sm:inline">Audio Transcribe</span>
+          </button>
+
           <button
             onClick={onToggleContextPanel}
             aria-label="Toggle details panel"
@@ -397,56 +436,149 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({
 
       {/* Sticky Bottom Message Composer */}
       <div className="p-4 sm:p-5 border-t border-white/5 bg-[#06070E]/95 backdrop-blur-md z-20 shrink-0">
-        <div className="max-w-3xl mx-auto">
-          <form
-            onSubmit={handleSubmit}
-            className="relative flex items-end gap-2 p-2 sm:p-2.5 rounded-2xl bg-[#0D1024] border border-white/15 shadow-2xl focus-within:border-[#0B00CF]/80 focus-within:ring-1 focus-within:ring-[#0B00CF]/50 transition-all"
-          >
-            {/* Input Textarea */}
-            <textarea
-              ref={textareaRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder={`Message Aurora as ${settings.userName}... (Shift+Enter for newline)`}
-              rows={1}
-              disabled={isGenerating}
-              className="flex-1 bg-transparent px-3 py-2 text-sm text-white placeholder-[#64748B] focus:outline-none resize-none leading-relaxed max-h-44 disabled:opacity-50"
-            />
-
-            {/* Send / Stop Buttons */}
-            {isGenerating ? (
+        <div className="max-w-3xl mx-auto space-y-2">
+          {/* Error notice if mic failed */}
+          {micError && (
+            <div className="p-2.5 rounded-xl bg-rose-500/15 border border-rose-500/30 text-rose-300 text-xs flex items-center justify-between animate-fade-in">
+              <span className="truncate">{micError}</span>
               <button
                 type="button"
-                onClick={onStopGenerating}
-                title="Stop response"
-                className="p-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white transition-all cursor-pointer shadow-md shrink-0 flex items-center justify-center"
+                onClick={clearMicError}
+                className="text-white/60 hover:text-white text-xs font-semibold px-2 py-0.5 rounded cursor-pointer"
               >
-                <Square className="w-4 h-4 fill-white" />
+                Dismiss
               </button>
-            ) : (
+            </div>
+          )}
+
+          {/* Active Voice Recording UI */}
+          {isRecording ? (
+            <div className="p-3 sm:p-3.5 rounded-2xl bg-[#0F142D] border border-rose-500/40 shadow-2xl flex items-center justify-between gap-3 animate-fade-in">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-rose-600/20 border border-rose-500/40 flex items-center justify-center shrink-0">
+                  <span className="w-3 h-3 rounded-full bg-rose-500 animate-ping" />
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-white uppercase tracking-wider font-mono">
+                      Recording speech
+                    </span>
+                    <span className="text-xs font-mono font-bold text-rose-400 bg-rose-500/20 px-2 py-0.5 rounded-md">
+                      {formattedDuration}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1 h-3 mt-1">
+                    {[10, 18, 12, 22, 14, 8, 20, 16, 24, 12, 18].map((h, i) => (
+                      <span
+                        key={i}
+                        className="w-1 bg-[#FF2D2B] rounded-full animate-pulse"
+                        style={{ height: `${h}px`, animationDelay: `${i * 0.08}s` }}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={cancelRecording}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold text-[#94A3B8] hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleMicToggle}
+                  className="btn-aurora-gradient px-4 py-2 rounded-xl text-xs font-semibold text-white shadow-md flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Check className="w-3.5 h-3.5" />
+                  <span>Done & Transcribe</span>
+                </button>
+              </div>
+            </div>
+          ) : isTranscribing ? (
+            <div className="p-3.5 rounded-2xl bg-[#0D122D] border border-[#0B00CF]/50 shadow-2xl flex items-center gap-3 animate-fade-in">
+              <Sparkles className="w-5 h-5 text-[#60A5FA] animate-spin shrink-0" />
+              <div className="text-xs">
+                <span className="font-semibold text-white">Transcribing audio with gemini-3.5-transcribe...</span>
+                <span className="text-[#94A3B8] block text-[11px]">Processing speech into text</span>
+              </div>
+            </div>
+          ) : (
+            <form
+              onSubmit={handleSubmit}
+              className="relative flex items-end gap-2 p-2 sm:p-2.5 rounded-2xl bg-[#0D1024] border border-white/15 shadow-2xl focus-within:border-[#0B00CF]/80 focus-within:ring-1 focus-within:ring-[#0B00CF]/50 transition-all"
+            >
+              {/* Input Textarea */}
+              <textarea
+                ref={textareaRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder={`Message Aurora as ${settings.userName}... (Shift+Enter for newline)`}
+                rows={1}
+                disabled={isGenerating}
+                className="flex-1 bg-transparent px-3 py-2 text-sm text-white placeholder-[#64748B] focus:outline-none resize-none leading-relaxed max-h-44 disabled:opacity-50"
+              />
+
+              {/* Microphone Voice Input Button */}
               <button
-                type="submit"
-                disabled={!input.trim()}
-                title="Send message"
-                className="p-2.5 rounded-xl btn-aurora-gradient disabled:opacity-30 disabled:hover:opacity-30 text-white transition-all cursor-pointer shadow-md shrink-0 flex items-center justify-center"
+                type="button"
+                onClick={handleMicToggle}
+                disabled={isGenerating}
+                title="Speak to Transcribe with gemini-3.5-transcribe"
+                aria-label="Transcribe speech with microphone"
+                className="p-2.5 rounded-xl text-[#94A3B8] hover:text-white hover:bg-white/10 transition-all cursor-pointer shrink-0 disabled:opacity-30"
               >
-                <ArrowUp className="w-4 h-4" />
+                <Mic className="w-4 h-4 text-[#FF2D2B]" />
               </button>
-            )}
-          </form>
+
+              {/* Send / Stop Buttons */}
+              {isGenerating ? (
+                <button
+                  type="button"
+                  onClick={onStopGenerating}
+                  title="Stop response"
+                  className="p-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white transition-all cursor-pointer shadow-md shrink-0 flex items-center justify-center"
+                >
+                  <Square className="w-4 h-4 fill-white" />
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={!input.trim()}
+                  title="Send message"
+                  className="p-2.5 rounded-xl btn-aurora-gradient disabled:opacity-30 disabled:hover:opacity-30 text-white transition-all cursor-pointer shadow-md shrink-0 flex items-center justify-center"
+                >
+                  <ArrowUp className="w-4 h-4" />
+                </button>
+              )}
+            </form>
+          )}
 
           {/* Bottom Keyboard Hint */}
-          <div className="flex items-center justify-between text-[11px] text-[#64748B] px-2 pt-1.5 font-sans">
+          <div className="flex items-center justify-between text-[11px] text-[#64748B] px-2 pt-1 font-sans">
             <span className="hidden sm:inline">
               Press <kbd className="px-1 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] text-[#94A3B8]">Enter</kbd> to send, <kbd className="px-1 py-0.5 rounded bg-white/5 border border-white/10 text-[10px] text-[#94A3B8]">Shift + Enter</kbd> for newline
             </span>
-            <span className="text-[#94A3B8] font-mono ml-auto">
-              Aurora AI Senpai · v2.0
+            <span className="text-[#94A3B8] font-mono ml-auto flex items-center gap-1.5">
+              <Mic className="w-3 h-3 text-[#FF2D2B]" />
+              <span>Voice powered by gemini-3.5-transcribe</span>
             </span>
           </div>
         </div>
       </div>
+
+      {/* Audio Transcriber Modal */}
+      <AudioTranscriberModal
+        isOpen={isTranscriberOpen}
+        onClose={() => setIsTranscriberOpen(false)}
+        onSendToChat={(transcriptText) => {
+          setInput((prev) => (prev ? `${prev} ${transcriptText}` : transcriptText));
+          setTimeout(() => textareaRef.current?.focus(), 150);
+        }}
+      />
     </div>
   );
 };

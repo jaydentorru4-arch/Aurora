@@ -4,6 +4,12 @@ export interface Message {
   content: string;
   timestamp: number;
   error?: boolean;
+  sources?: { title: string; uri: string }[];
+  image?: {
+    url: string;
+    prompt: string;
+    aspectRatio?: string;
+  };
 }
 
 export interface Conversation {

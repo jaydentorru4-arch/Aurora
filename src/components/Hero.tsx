@@ -4,10 +4,11 @@ import { ASSETS } from '../assets';
 
 interface HeroProps {
   onOpenAuth: (mode: 'login' | 'signup') => void;
-  onExploreGreeting: () => void;
+  onExploreGreeting?: () => void;
+  onComeSayHi?: () => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({ onOpenAuth, onExploreGreeting }) => {
+export const Hero: React.FC<HeroProps> = ({ onOpenAuth, onExploreGreeting, onComeSayHi }) => {
   const [bgSrc, setBgSrc] = React.useState(ASSETS.heroBg);
 
   return (
@@ -60,7 +61,7 @@ export const Hero: React.FC<HeroProps> = ({ onOpenAuth, onExploreGreeting }) => 
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
               <button
-                onClick={onExploreGreeting}
+                onClick={onComeSayHi || onExploreGreeting}
                 className="btn-aurora-gradient px-8 py-4 rounded-xl text-sm font-semibold text-white shadow-2xl flex items-center justify-center gap-2 group cursor-pointer"
               >
                 <span>Come Say Hi</span>

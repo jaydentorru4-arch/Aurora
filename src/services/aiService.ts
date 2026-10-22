@@ -1,9 +1,15 @@
 import { Message, PersonalitySettings } from '../types/dashboard';
 
+export interface GroundingSource {
+  title: string;
+  uri: string;
+}
+
 export interface SendMessageOptions {
   messages: Message[];
   settings: PersonalitySettings;
   onChunk: (chunkText: string) => void;
+  onGrounding?: (sources: GroundingSource[]) => void;
   signal?: AbortSignal;
 }
 
@@ -11,6 +17,7 @@ export async function streamChatResponse({
   messages,
   settings,
   onChunk,
+  onGrounding,
   signal,
 }: SendMessageOptions): Promise<string> {
   const payload = {
@@ -84,6 +91,9 @@ export async function streamChatResponse({
           fullAccumulatedText += parsed.text;
           onChunk(parsed.text);
         }
+        if (Array.isArray(parsed.grounding) && onGrounding) {
+          onGrounding(parsed.grounding);
+        }
       } catch (err) {
         if (err instanceof SyntaxError) {
           // Incomplete chunk, will accumulate
@@ -95,4 +105,50 @@ export async function streamChatResponse({
   }
 
   return fullAccumulatedText;
+}
+
+export async function synthesizeSpeech(text: string, voice = 'Kore'): Promise<string> {
+  const response = await fetch('/api/tts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text, voice }),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || 'Speech synthesis failed');
+  }
+
+  const data = await response.json();
+  return `data:${data.mimeType || 'audio/wav'};base64,${data.audio}`;
+}
+
+export interface GenerateImageOptions {
+  prompt: string;
+  aspectRatio?: '1:1' | '16:9' | '9:16' | '4:3' | '3:4';
+  style?: 'anime' | 'cinematic';
+}
+
+export interface GeneratedImageResult {
+  imageUrl: string;
+  prompt: string;
+  source: string;
+  aspectRatio: string;
+  width?: number;
+  height?: number;
+}
+
+export async function generateAiImage(options: GenerateImageOptions): Promise<GeneratedImageResult> {
+  const response = await fetch('/api/generate-image', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(options),
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error || 'Image generation failed');
+  }
+
+  return response.json();
 }

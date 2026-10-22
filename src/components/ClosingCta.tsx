@@ -4,9 +4,10 @@ import { ArrowRight } from 'lucide-react';
 interface ClosingCtaProps {
   onOpenAuth: (mode: 'login' | 'signup') => void;
   onExploreGreeting: () => void;
+  onComeSayHi?: () => void;
 }
 
-export const ClosingCta: React.FC<ClosingCtaProps> = ({ onOpenAuth, onExploreGreeting }) => {
+export const ClosingCta: React.FC<ClosingCtaProps> = ({ onOpenAuth, onExploreGreeting, onComeSayHi }) => {
   return (
     <section className="py-24 relative overflow-hidden text-center">
       {/* Background illumination */}
@@ -29,7 +30,7 @@ export const ClosingCta: React.FC<ClosingCtaProps> = ({ onOpenAuth, onExploreGre
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
           <button
-            onClick={onExploreGreeting}
+            onClick={onComeSayHi || onExploreGreeting}
             className="btn-aurora-gradient w-full sm:w-auto px-8 py-3.5 rounded-xl text-sm font-semibold text-white shadow-xl flex items-center justify-center gap-2 group cursor-pointer"
           >
             <span>Meet Aurora</span>
