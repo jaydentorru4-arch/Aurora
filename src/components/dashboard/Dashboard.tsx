@@ -250,6 +250,112 @@ export const Dashboard: React.FC<DashboardProps> = ({ onBackToHome }) => {
   };
 
   const handleRegenerate = () => {
+const handleRegenerate = async () => {
+  if (
+    !activeConversation ||
+    activeConversation.messages.length < 2 ||
+    isGenerating ||
+    !activeId
+  ) {
+    return;
+  }
+
+  const messages = activeConversation.messages;
+  const lastMessage = messages[messages.length - 1];
+
+  if (lastMessage.role !== 'model') return;
+
+  // Keep the conversation history and remove only the old AI response.
+  const history = messages.slice(0, -1);
+
+  const modelMessageId = `msg_${Date.now()}_${Math.random()
+    .toString(36)
+    .slice(2, 7)}`;
+
+  const assistantPlaceholder: Message = {
+    id: modelMessageId,
+    role: 'model',
+    content: '',
+    timestamp: Date.now(),
+  };
+
+  setConversations((prev) =>
+    prev.map((c) =>
+      c.id === activeId
+        ? {
+            ...c,
+            messages: [...history, assistantPlaceholder],
+            updatedAt: Date.now(),
+          }
+        : c
+    )
+  );
+
+  setIsGenerating(true);
+
+  const controller = new AbortController();
+  abortControllerRef.current = controller;
+
+  try {
+    let accumulated = '';
+
+    await streamChatResponse({
+      messages: history,
+      settings,
+      signal: controller.signal,
+
+      onChunk: (chunk) => {
+        accumulated += chunk;
+
+        setConversations((prev) =>
+          prev.map((c) =>
+            c.id === activeId
+              ? {
+                  ...c,
+                  messages: c.messages.map((m) =>
+                    m.id === modelMessageId
+                      ? { ...m, content: accumulated }
+                      : m
+                  ),
+                }
+              : c
+          )
+        );
+      },
+    });
+  } catch (err: unknown) {
+    if (controller.signal.aborted) {
+      console.log('Chat regeneration aborted by user.');
+      return;
+    }
+
+    console.error('Chat regeneration error:', err);
+
+    const errMsg =
+      err instanceof Error
+        ? err.message
+        : 'Failed to reach Aurora service.';
+
+    setConversations((prev) =>
+      prev.map((c) =>
+        c.id === activeId
+          ? {
+              ...c,
+              messages: c.messages.map((m) =>
+                m.id === modelMessageId
+                  ? { ...m, content: errMsg, error: true }
+                  : m
+              ),
+            }
+          : c
+      )
+    );
+  } finally {
+    setIsGenerating(false);
+    abortControllerRef.current = null;
+  }
+};
+
     if (!activeConversation || activeConversation.messages.length < 2 || isGenerating) return;
 
     const messages = activeConversation.messages;
