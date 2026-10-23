@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Sparkles, Sliders, User, Eye, Check } from 'lucide-react';
+import { X, Zap, Sliders, User, Eye, Check } from 'lucide-react';
 import { PersonalitySettings, ResponseStyle, PersonalityIntensity } from '../../types/dashboard';
 
 interface SettingsModalProps {
@@ -111,7 +111,7 @@ export const DashboardSettingsModal: React.FC<SettingsModalProps> = ({
           {/* Personality Intensity */}
           <div>
             <label className="flex items-center gap-2 text-xs font-semibold text-white/90 uppercase tracking-wider mb-2">
-              <Sparkles className="w-3.5 h-3.5 text-[#A5B4FC]" />
+              <Zap className="w-3.5 h-3.5 text-[#A5B4FC]" />
               Personality Intensity
             </label>
             <div className="grid grid-cols-1 gap-2">

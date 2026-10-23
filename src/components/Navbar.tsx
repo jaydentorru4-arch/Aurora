@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Crown } from 'lucide-react';
+import { Menu, X } from 'lucide-react';
 import { ASSETS } from '../assets';
 import { UserProfile } from '../types/auth';
 
@@ -8,7 +8,6 @@ interface NavbarProps {
   onOpenDashboard?: () => void;
   onOpenChatbot?: () => void;
   currentUser?: UserProfile | null;
-  onOpenAdminPanel?: () => void;
   onLogout?: () => void;
 }
 
@@ -17,7 +16,6 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenDashboard,
   onOpenChatbot,
   currentUser,
-  onOpenAdminPanel,
   onLogout,
 }) => {
   const [scrolled, setScrolled] = useState(false);
@@ -103,16 +101,9 @@ export const Navbar: React.FC<NavbarProps> = ({
         <div className="hidden md:flex items-center gap-3 shrink-0">
           {currentUser ? (
             <div className="flex items-center gap-2">
-              {currentUser.role === 'admin' && onOpenAdminPanel && (
-                <button
-                  type="button"
-                  onClick={onOpenAdminPanel}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-[#FF2D2B]/20 to-[#0B00CF]/20 border border-[#FF2D2B]/50 hover:border-[#FF2D2B] text-xs font-semibold text-white transition-all cursor-pointer shadow-[0_0_12px_rgba(255,45,43,0.35)]"
-                >
-                  <Crown className="w-3.5 h-3.5 text-[#FF2D2B]" />
-                  <span>{currentUser.name} (Admin)</span>
-                </button>
-              )}
+              <span className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs font-medium text-white">
+                {currentUser.name}
+              </span>
               {onLogout && (
                 <button
                   type="button"
@@ -143,15 +134,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
         {/* Mobile Menu Button */}
         <div className="flex md:hidden items-center gap-2">
-          {currentUser?.role === 'admin' && onOpenAdminPanel ? (
-            <button
-              onClick={onOpenAdminPanel}
-              className="px-2.5 py-1 text-xs font-semibold text-white rounded-md bg-[#FF2D2B]/20 border border-[#FF2D2B]/40 flex items-center gap-1"
-            >
-              <Crown className="w-3 h-3 text-[#FF2D2B]" />
-              <span>Admin</span>
-            </button>
-          ) : (
+          {!currentUser && (
             <button
               onClick={() => onOpenAuth('signup')}
               className="btn-aurora-gradient px-3 py-1.5 text-xs font-semibold text-white rounded-md whitespace-nowrap"
@@ -172,18 +155,6 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div className="md:hidden bg-[#070A18] border-b border-white/10 px-6 py-5 mt-2 space-y-4">
-          {currentUser?.role === 'admin' && onOpenAdminPanel && (
-            <button
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenAdminPanel();
-              }}
-              className="w-full py-2.5 text-center text-xs font-semibold text-white rounded-lg bg-[#FF2D2B]/20 border border-[#FF2D2B]/40 flex items-center justify-center gap-2 transition-colors cursor-pointer"
-            >
-              <Crown className="w-4 h-4 text-[#FF2D2B]" />
-              <span>Open Admin Console</span>
-            </button>
-          )}
           {onOpenChatbot && (
             <button
               onClick={() => {

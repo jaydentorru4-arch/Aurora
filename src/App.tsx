@@ -12,8 +12,8 @@ import { GreetingModal } from './components/GreetingModal';
 import { LegalModal } from './components/LegalModals';
 import { Dashboard } from './components/dashboard/Dashboard';
 import { ChatbotWidget } from './components/ChatbotWidget';
-import { AdminPanelModal } from './components/AdminPanelModal';
-import { UserProfile, DEFAULT_ADMIN_USER } from './types/auth';
+import { UserProfile } from './types/auth';
+import { fetchCurrentUser, logoutUser } from './services/authService';
 
 export default function App() {
   const getInitialView = (): 'home' | 'dashboard' => {
@@ -48,15 +48,31 @@ export default function App() {
     setChatbotOpen(true);
   };
 
-  // Authenticated User & Admin State (defaults to Jayden as Admin)
+  // Authenticated User State
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
     try {
       const saved = localStorage.getItem('aurora_current_user');
       if (saved) return JSON.parse(saved);
     } catch {}
-    return DEFAULT_ADMIN_USER;
+    return null;
   });
-  const [adminPanelOpen, setAdminPanelOpen] = useState(false);
+
+  // Authoritatively re-verify session with the server on mount
+  useEffect(() => {
+    fetchCurrentUser().then((verifiedUser) => {
+      if (verifiedUser) {
+        setCurrentUser(verifiedUser);
+        try {
+          localStorage.setItem('aurora_current_user', JSON.stringify(verifiedUser));
+        } catch {}
+      } else {
+        setCurrentUser(null);
+        try {
+          localStorage.removeItem('aurora_current_user');
+        } catch {}
+      }
+    });
+  }, []);
 
   // Sync with browser navigation
   useEffect(() => {
@@ -122,7 +138,34 @@ export default function App() {
 
   // Dedicated Dashboard View
   if (currentView === 'dashboard') {
-    return <Dashboard onBackToHome={() => navigateTo('home')} />;
+    return (
+      <>
+        <Dashboard
+          onBackToHome={() => navigateTo('home')}
+          currentUser={currentUser}
+          onLogout={() => {
+            logoutUser();
+            setCurrentUser(null);
+            try {
+              localStorage.removeItem('aurora_current_user');
+            } catch {}
+          }}
+          onOpenAuth={handleOpenAuth}
+        />
+
+        <AuthModal
+          isOpen={authModalOpen}
+          initialMode={authMode}
+          onClose={() => setAuthModalOpen(false)}
+          onLoginSuccess={(user) => {
+            setCurrentUser(user);
+            try {
+              localStorage.setItem('aurora_current_user', JSON.stringify(user));
+            } catch {}
+          }}
+        />
+      </>
+    );
   }
 
   // Approved Existing Homepage
@@ -144,8 +187,8 @@ export default function App() {
         onOpenDashboard={() => navigateTo('dashboard')}
         onOpenChatbot={() => setChatbotOpen(true)}
         currentUser={currentUser}
-        onOpenAdminPanel={() => setAdminPanelOpen(true)}
         onLogout={() => {
+          logoutUser();
           setCurrentUser(null);
           try {
             localStorage.removeItem('aurora_current_user');
@@ -195,13 +238,6 @@ export default function App() {
             localStorage.setItem('aurora_current_user', JSON.stringify(user));
           } catch {}
         }}
-        onOpenAdminPanel={() => setAdminPanelOpen(true)}
-      />
-
-      <AdminPanelModal
-        isOpen={adminPanelOpen}
-        onClose={() => setAdminPanelOpen(false)}
-        currentUser={currentUser}
       />
 
       <GreetingModal

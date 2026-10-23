@@ -8,7 +8,8 @@ import {
   Download,
   Send,
   X,
-  Sparkles,
+  Cpu,
+  Zap,
   AlertCircle,
   Volume2,
   FileAudio,
@@ -229,7 +230,7 @@ export const AudioTranscriberModal: React.FC<AudioTranscriberModalProps> = ({
                   {isRecording ? (
                     <Square className="w-7 h-7 fill-white" />
                   ) : isTranscribing ? (
-                    <Sparkles className="w-7 h-7 animate-spin text-[#60A5FA]" />
+                    <Cpu className="w-7 h-7 animate-pulse text-[#60A5FA]" />
                   ) : (
                     <Mic className="w-7 h-7" />
                   )}
@@ -266,8 +267,8 @@ export const AudioTranscriberModal: React.FC<AudioTranscriberModalProps> = ({
                 ) : isTranscribing ? (
                   <div className="space-y-1">
                     <p className="text-sm font-semibold text-white flex items-center justify-center gap-2">
-                      <Sparkles className="w-4 h-4 text-[#FF2D2B] animate-spin" />
-                      Transcribing with gemini-3.5-transcribe...
+                      <Cpu className="w-4 h-4 text-[#FF2D2B] animate-pulse" />
+                      Transcribing speech to text...
                     </p>
                     <p className="text-xs text-[#94A3B8]">
                       Processing audio clarity and speech recognition
@@ -364,13 +365,13 @@ export const AudioTranscriberModal: React.FC<AudioTranscriberModalProps> = ({
                   >
                     {isFileTranscribing ? (
                       <>
-                        <Sparkles className="w-3.5 h-3.5 animate-spin" />
-                        <span>Transcribing with gemini-3.5-transcribe...</span>
+                        <Cpu className="w-3.5 h-3.5 animate-pulse" />
+                        <span>Transcribing audio...</span>
                       </>
                     ) : (
                       <>
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span>Transcribe with Gemini 3.5</span>
+                        <Cpu className="w-3.5 h-3.5" />
+                        <span>Transcribe Audio</span>
                       </>
                     )}
                   </button>
@@ -394,7 +395,7 @@ export const AudioTranscriberModal: React.FC<AudioTranscriberModalProps> = ({
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <label className="text-xs font-mono uppercase tracking-wider text-[#94A3B8] font-semibold flex items-center gap-1.5">
-                <Sparkles className="w-3 h-3 text-[#FF2D2B]" />
+                <Zap className="w-3 h-3 text-[#FF2D2B]" />
                 Transcription Result:
               </label>
               {transcript && (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Cpu, Info, Sliders, Download, Trash, Calendar, MessageSquare, Sparkles } from 'lucide-react';
+import { X, Cpu, Info, Sliders, Download, Trash, Calendar, MessageSquare, Zap } from 'lucide-react';
 import { Conversation, PersonalitySettings } from '../../types/dashboard';
 
 interface ContextPanelProps {
@@ -139,7 +139,7 @@ export const DashboardContextPanel: React.FC<ContextPanelProps> = ({
         <div className="p-3.5 rounded-xl bg-[#0F142D]/80 border border-white/5 space-y-2.5">
           <div className="flex items-center justify-between">
             <span className="text-[10px] font-mono text-[#A5B4FC] uppercase tracking-wider flex items-center gap-1.5">
-              <Sparkles className="w-3.5 h-3.5 text-[#FF2D2B]" />
+              <Zap className="w-3.5 h-3.5 text-[#FF2D2B]" />
               Active Persona
             </span>
             <button

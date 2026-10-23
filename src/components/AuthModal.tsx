@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   Lock,
@@ -8,25 +8,17 @@ import {
   ArrowRight,
   Eye,
   EyeOff,
-  Crown,
-  ShieldCheck,
+  Loader2,
 } from 'lucide-react';
 import { ASSETS } from '../assets';
-import {
-  UserProfile,
-  UserAccount,
-  ADMIN_EMAIL,
-  getRegisteredAccounts,
-  saveRegisteredAccounts,
-  DEFAULT_ADMIN_USER,
-} from '../types/auth';
+import { UserProfile } from '../types/auth';
+import { loginUser, registerUser } from '../services/authService';
 
 interface AuthModalProps {
   isOpen: boolean;
   initialMode: 'login' | 'signup';
   onClose: () => void;
   onLoginSuccess?: (user: UserProfile) => void;
-  onOpenAdminPanel?: () => void;
 }
 
 export const AuthModal: React.FC<AuthModalProps> = ({
@@ -34,65 +26,29 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   initialMode,
   onClose,
   onLoginSuccess,
-  onOpenAdminPanel,
 }) => {
   const [mode, setMode] = useState<'login' | 'signup'>(initialMode);
-  const [email, setEmail] = useState(ADMIN_EMAIL);
-  const [password, setPassword] = useState('admin123');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [nickname, setNickname] = useState('Jayden');
-  const [submitted, setSubmitted] = useState(false);
-  const [isAdminLogin, setIsAdminLogin] = useState(false);
+  const [name, setName] = useState('');
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [authenticatedUser, setAuthenticatedUser] = useState<UserProfile | null>(null);
   const [logoSrc, setLogoSrc] = useState(ASSETS.logo);
 
   // Sync mode with prop when opened
-  React.useEffect(() => {
+  useEffect(() => {
     setMode(initialMode);
-    setSubmitted(false);
     setError(null);
-    setSuccessMessage(null);
+    setLoading(false);
+    setAuthenticatedUser(null);
     setShowPassword(false);
-    if (!email) {
-      setEmail(ADMIN_EMAIL);
-      setPassword('admin123');
-    }
   }, [initialMode, isOpen]);
 
   if (!isOpen) return null;
 
-  const handleQuickSignIn = (type: 'admin' | 'demo') => {
-    setError(null);
-    if (type === 'admin') {
-      setEmail(ADMIN_EMAIL);
-      setPassword('admin123');
-      setNickname('Jayden');
-      const userProfile: UserProfile = DEFAULT_ADMIN_USER;
-      setIsAdminLogin(true);
-      onLoginSuccess?.(userProfile);
-      setSuccessMessage('Logged in as Administrator Jayden');
-      setSubmitted(true);
-    } else {
-      const demoEmail = 'demo@aurora.ai';
-      setEmail(demoEmail);
-      setPassword('aurora123');
-      setNickname('Kouhai Demo');
-      const userProfile: UserProfile = {
-        id: 'usr_demo',
-        email: demoEmail,
-        name: 'Kouhai Demo',
-        role: 'user',
-        createdAt: Date.now(),
-      };
-      setIsAdminLogin(false);
-      onLoginSuccess?.(userProfile);
-      setSuccessMessage('Logged in as Kouhai Demo');
-      setSubmitted(true);
-    }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
 
@@ -106,71 +62,44 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       return;
     }
 
-    const accounts = getRegisteredAccounts();
-    const isAdmin = cleanEmail === ADMIN_EMAIL.toLowerCase();
-
-    if (mode === 'login') {
-      const existing = accounts.find((a) => a.email.toLowerCase() === cleanEmail);
-      if (existing) {
-        if (existing.passwordHash && existing.passwordHash !== password && password !== 'admin123') {
-          setError('Incorrect password. Please verify and try again.');
-          return;
-        }
-
-        const userProfile: UserProfile = {
-          id: existing.id,
-          email: existing.email,
-          name: existing.name,
-          role: isAdmin ? 'admin' : existing.role,
-          createdAt: existing.createdAt,
-        };
-
-        setIsAdminLogin(userProfile.role === 'admin');
-        onLoginSuccess?.(userProfile);
-        setSuccessMessage(`Welcome back, ${userProfile.name}!`);
-        setSubmitted(true);
+    setLoading(true);
+    try {
+      let authResult;
+      if (mode === 'signup') {
+        authResult = await registerUser(cleanEmail, password, name.trim() || undefined);
       } else {
-        // Automatically create account and log in
-        const newAccount: UserAccount = {
-          id: isAdmin ? 'usr_admin_jayden' : `usr_${Date.now()}`,
-          email: email.trim(),
-          name: nickname.trim() || (isAdmin ? 'Jayden' : email.split('@')[0]),
-          role: isAdmin ? 'admin' : 'user',
-          createdAt: Date.now(),
-          passwordHash: password,
-        };
-        saveRegisteredAccounts([...accounts, newAccount]);
-        setIsAdminLogin(isAdmin);
-        onLoginSuccess?.(newAccount);
-        setSuccessMessage(`Account created & logged in as ${newAccount.name}!`);
-        setSubmitted(true);
+        authResult = await loginUser(cleanEmail, password);
       }
-    } else {
-      // Sign up
-      const existing = accounts.find((a) => a.email.toLowerCase() === cleanEmail);
-      if (existing) {
-        existing.passwordHash = password;
-        if (nickname.trim()) existing.name = nickname.trim();
-        saveRegisteredAccounts(accounts);
-        setIsAdminLogin(existing.role === 'admin' || isAdmin);
-        onLoginSuccess?.(existing);
-        setSuccessMessage(`Welcome, ${existing.name}!`);
-        setSubmitted(true);
-      } else {
-        const newAccount: UserAccount = {
-          id: isAdmin ? 'usr_admin_jayden' : `usr_${Date.now()}`,
-          email: email.trim(),
-          name: nickname.trim() || (isAdmin ? 'Jayden' : email.split('@')[0]),
-          role: isAdmin ? 'admin' : 'user',
-          createdAt: Date.now(),
-          passwordHash: password,
-        };
-        saveRegisteredAccounts([...accounts, newAccount]);
-        setIsAdminLogin(isAdmin);
-        onLoginSuccess?.(newAccount);
-        setSuccessMessage(`Account created successfully! Welcome, ${newAccount.name}.`);
-        setSubmitted(true);
+
+      setAuthenticatedUser(authResult.user);
+      onLoginSuccess?.(authResult.user);
+    } catch (err: any) {
+      setError(err?.message || 'Authentication failed. Please verify your details.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDemoSignIn = async () => {
+    setError(null);
+    setEmail('guest@aurora.ai');
+    setPassword('aurora123');
+    setMode('login');
+    setLoading(true);
+    try {
+      // Try login or register guest account
+      let authResult;
+      try {
+        authResult = await loginUser('guest@aurora.ai', 'aurora123');
+      } catch {
+        authResult = await registerUser('guest@aurora.ai', 'aurora123', 'Guest Explorer');
       }
+      setAuthenticatedUser(authResult.user);
+      onLoginSuccess?.(authResult.user);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to initialize demo session.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -197,76 +126,25 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           <X className="w-5 h-5" />
         </button>
 
-        {submitted ? (
-          /* Confirmation / Admin Authorization Screen */
+        {authenticatedUser ? (
           <div className="text-center py-5 space-y-4">
-            {isAdminLogin ? (
-              <div className="space-y-4">
-                <div className="w-14 h-14 rounded-2xl bg-[#FF2D2B]/15 border border-[#FF2D2B]/40 text-[#FF2D2B] mx-auto flex items-center justify-center shadow-lg">
-                  <Crown className="w-7 h-7" />
-                </div>
-                <div>
-                  <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded-full bg-[#FF2D2B]/20 text-[#FF2D2B] border border-[#FF2D2B]/40 font-bold tracking-wider">
-                    Super Admin Verified
-                  </span>
-                  <h3 className="text-lg font-bold text-white mt-2">
-                    Welcome back, Admin Jayden!
-                  </h3>
-                  <p className="text-xs text-[#94A3B8] mt-1 leading-relaxed">
-                    Full root administrative privileges have been assigned to <span className="text-white font-mono">{email}</span>.
-                  </p>
-                </div>
-
-                <div className="p-3 rounded-xl bg-white/[0.03] border border-white/10 text-xs text-[#CBD5E1] text-left flex items-start gap-2.5">
-                  <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <div className="text-[11px] leading-snug">
-                    <strong className="text-white block font-medium">Elevated Role Granted:</strong>
-                    Direct access to Aurora's model diagnostics, neural persona tuning, and voice broadcast console.
-                  </div>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-2.5 pt-2">
-                  {onOpenAdminPanel && (
-                    <button
-                      onClick={() => {
-                        onClose();
-                        onOpenAdminPanel();
-                      }}
-                      className="btn-aurora-gradient flex-1 py-2.5 rounded-xl text-xs font-semibold text-white flex items-center justify-center gap-1.5 cursor-pointer shadow-md"
-                    >
-                      <Crown className="w-3.5 h-3.5" />
-                      <span>Launch Admin Console</span>
-                    </button>
-                  )}
-                  <button
-                    onClick={onClose}
-                    className="px-4 py-2.5 rounded-xl text-xs font-semibold text-[#94A3B8] hover:text-white border border-white/10 hover:bg-white/5 transition-colors cursor-pointer"
-                  >
-                    Done
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 mx-auto flex items-center justify-center">
-                  <CheckCircle2 className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-bold text-white">
-                    {successMessage || 'Login Successful!'}
-                  </h3>
-                  <p className="text-xs text-[#94A3B8] mt-1 leading-relaxed">
-                    Logged in as <span className="text-white font-medium">{email}</span>. Your personalized conversation memory is active.
-                  </p>
-                </div>
-                <button
-                  onClick={onClose}
-                  className="btn-aurora-gradient w-full py-2.5 rounded-xl text-xs font-semibold text-white cursor-pointer shadow-md"
-                >
-                  Continue to Aurora
-                </button>
-              </div>
-            )}
+            <div className="w-12 h-12 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 mx-auto flex items-center justify-center">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-white">
+                Welcome, {authenticatedUser.name}!
+              </h3>
+              <p className="text-xs text-[#94A3B8] mt-1 leading-relaxed">
+                Logged in as <span className="text-white font-medium">{authenticatedUser.email}</span>. Your personalized workspace & chat history are active.
+              </p>
+            </div>
+            <button
+              onClick={onClose}
+              className="btn-aurora-gradient w-full py-2.5 rounded-xl text-xs font-semibold text-white cursor-pointer shadow-md"
+            >
+              Continue to Aurora
+            </button>
           </div>
         ) : (
           <div>
@@ -291,35 +169,22 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </h3>
               <p className="text-xs text-[#94A3B8] mt-0.5">
                 {mode === 'signup'
-                  ? 'Save your personalized conversation memory.'
+                  ? 'Sign up to keep your personal conversations isolated and saved.'
                   : 'Enter your credentials to access your session.'}
               </p>
             </div>
 
-            {/* Quick 1-Click Login Chips */}
-            <div className="mb-4 p-2.5 rounded-xl bg-white/[0.03] border border-white/10">
-              <span className="text-[10px] font-mono text-[#94A3B8] uppercase tracking-wider block mb-1.5">
-                Quick 1-Click Sign In:
-              </span>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => handleQuickSignIn('admin')}
-                  className="px-2.5 py-1.5 rounded-lg bg-[#FF2D2B]/15 hover:bg-[#FF2D2B]/25 border border-[#FF2D2B]/40 text-[#FF2D2B] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <Crown className="w-3.5 h-3.5" />
-                  <span>Admin (Jayden)</span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleQuickSignIn('demo')}
-                  className="px-2.5 py-1.5 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-[#CBD5E1] text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors cursor-pointer"
-                >
-                  <User className="w-3.5 h-3.5 text-[#60A5FA]" />
-                  <span>Demo Member</span>
-                </button>
-              </div>
+            {/* Quick Guest Sign-In */}
+            <div className="mb-4">
+              <button
+                type="button"
+                onClick={handleDemoSignIn}
+                disabled={loading}
+                className="w-full px-3 py-2 rounded-xl bg-white/[0.04] hover:bg-white/[0.08] border border-white/10 text-[#CBD5E1] text-xs font-medium flex items-center justify-center gap-2 transition-colors cursor-pointer"
+              >
+                <User className="w-3.5 h-3.5 text-[#60A5FA]" />
+                <span>Try Demo Guest Account (Instant)</span>
+              </button>
             </div>
 
             {/* Mode Toggle Switch */}
@@ -359,15 +224,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               {mode === 'signup' && (
                 <div>
                   <label className="block text-xs font-medium text-[#CBD5E1] mb-1">
-                    What should Aurora call you?
+                    Your Name or Nickname
                   </label>
                   <div className="relative">
                     <User className="w-4 h-4 text-[#64748B] absolute left-3.5 top-1/2 -translate-y-1/2" />
                     <input
                       type="text"
-                      placeholder="e.g. Jayden or Kai"
-                      value={nickname}
-                      onChange={(e) => setNickname(e.target.value)}
+                      placeholder="e.g. Kai or Sarah"
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
                       className="w-full pl-10 pr-4 py-2 bg-[#050713] border border-white/10 rounded-xl text-xs sm:text-sm text-white placeholder-[#475569] focus:outline-none focus:border-[#0B00CF] transition-colors"
                     />
                   </div>
@@ -375,21 +240,15 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               )}
 
               <div>
-                <label className="block text-xs font-medium text-[#CBD5E1] mb-1 flex items-center justify-between">
-                  <span>Email Address</span>
-                  {email.toLowerCase() === ADMIN_EMAIL.toLowerCase() && (
-                    <span className="text-[10px] font-mono text-[#FF2D2B] font-semibold flex items-center gap-1">
-                      <Crown className="w-3 h-3" />
-                      Admin Account
-                    </span>
-                  )}
+                <label className="block text-xs font-medium text-[#CBD5E1] mb-1">
+                  Email Address
                 </label>
                 <div className="relative">
                   <Mail className="w-4 h-4 text-[#64748B] absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
                     type="email"
                     required
-                    placeholder="you@domain.com"
+                    placeholder="you@example.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="w-full pl-10 pr-4 py-2 bg-[#050713] border border-white/10 rounded-xl text-xs sm:text-sm text-white placeholder-[#475569] focus:outline-none focus:border-[#0B00CF] transition-colors"
@@ -419,7 +278,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-10 pr-10 py-2 bg-[#050713] border border-white/10 rounded-xl text-xs sm:text-sm text-white placeholder-[#475569] focus:outline-none focus:border-[#0B00CF] transition-colors"
                   />
-                  {/* View Password Toggle Icon */}
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
@@ -440,10 +298,17 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
               <button
                 type="submit"
-                className="btn-aurora-gradient w-full py-2.5 rounded-xl text-xs font-semibold text-white shadow-md flex items-center justify-center gap-1.5 group cursor-pointer mt-2"
+                disabled={loading}
+                className="btn-aurora-gradient w-full py-2.5 rounded-xl text-xs font-semibold text-white shadow-md flex items-center justify-center gap-1.5 group cursor-pointer mt-2 disabled:opacity-60"
               >
-                <span>{mode === 'signup' ? 'Create Account' : 'Log In'}</span>
-                <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                {loading ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <span>{mode === 'signup' ? 'Create Account' : 'Log In'}</span>
+                    <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+                  </>
+                )}
               </button>
             </form>
           </div>

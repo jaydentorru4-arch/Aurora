@@ -1,0 +1,18 @@
+[
+  {
+    "id": "usr_1792776345236_154395dc",
+    "email": "alice1792776345122@test.com",
+    "name": "Alice Wonderland",
+    "passwordHash": "00850fd91ab31a942b34d73a91fa9388b2d13fadd09b1dedeb335374000f4efa8c6479d5c09ed4d5f9c394586b62c32ec9778b09e548a790c4905060e57ddff8",
+    "salt": "67b057b3f88196e44978959e58790041",
+    "createdAt": 1792776345236
+  },
+  {
+    "id": "usr_admin_1792776345256",
+    "email": "jaydentorru4@gmail.com",
+    "name": "jaydentorru4",
+    "passwordHash": "330388825e8df3f2d9e2c248b2ad7ea7780766e9594e22e81f33b9bc2c62e131cd57f6b9529824e84a84818837e49fa9cccdfc0e210b04431c73ee943f69b4ec",
+    "salt": "03700a3716a6c0066e29cc08fd06d5f1",
+    "createdAt": 1792776345256
+  }
+]

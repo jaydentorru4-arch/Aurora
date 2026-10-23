@@ -3,7 +3,8 @@ import {
   Menu,
   Send,
   Square,
-  Sparkles,
+  Cpu,
+  Zap,
   Info,
   Copy,
   Check,
@@ -187,8 +188,8 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({
             </h2>
             <div className="flex items-center gap-2 text-[10px] text-[#94A3B8]">
               <span className="flex items-center gap-1 text-[#38BDF8] font-mono">
-                <Sparkles className="w-2.5 h-2.5" />
-                Gemini 3.8 Flash
+                <Zap className="w-2.5 h-2.5 text-[#38BDF8]" />
+                Gemini 3.1 Flash-Lite
               </span>
               <span>·</span>
               <span className="capitalize text-[#A5B4FC]">
@@ -499,9 +500,9 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({
             </div>
           ) : isTranscribing ? (
             <div className="p-3.5 rounded-2xl bg-[#0D122D] border border-[#0B00CF]/50 shadow-2xl flex items-center gap-3 animate-fade-in">
-              <Sparkles className="w-5 h-5 text-[#60A5FA] animate-spin shrink-0" />
+              <Cpu className="w-5 h-5 text-[#60A5FA] animate-pulse shrink-0" />
               <div className="text-xs">
-                <span className="font-semibold text-white">Transcribing audio with gemini-3.5-transcribe...</span>
+                <span className="font-semibold text-white">Transcribing audio...</span>
                 <span className="text-[#94A3B8] block text-[11px]">Processing speech into text</span>
               </div>
             </div>
@@ -516,7 +517,7 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={handleKeyDown}
-                placeholder={`Message Aurora as ${settings.userName}... (Shift+Enter for newline)`}
+                placeholder="Message Aurora... (Enter to send, Shift+Enter for newline)"
                 rows={1}
                 disabled={isGenerating}
                 className="flex-1 bg-transparent px-3 py-2 text-sm text-white placeholder-[#64748B] focus:outline-none resize-none leading-relaxed max-h-44 disabled:opacity-50"
