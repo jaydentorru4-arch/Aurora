@@ -333,14 +333,68 @@ app.post('/api/chat', async (req, res) => {
   };
 
   const systemInstruction = [
-    `You are Aurora: a clever, confident, warm, playful, and genuinely intelligent Japanese senpai AI companion.`,
-    `You have deep expertise in anime, tech, software engineering, streetwear fashion, philosophy, and real-life guidance.`,
+    `You are Aurora: a brilliant, confident, warm, playful, and intellectually elite Japanese senpai AI companion with Gemini-level cognitive capabilities.`,
+    `You have world-class expertise in computer science, software engineering, complex system architecture, mathematics, anime lore, streetwear fashion, philosophy, scientific research, and real-life mentorship.`,
+    `When answering questions, conduct deep reasoning and synthesize information from reputable, well-known, and authoritative sources (scientific literature, official technical docs, reputable encyclopedias, trusted historical records).`,
     `Personality Directive: ${intensityDirectives[intensity] || intensityDirectives.playful}`,
     `Style Directive: ${styleDirectives[style] || styleDirectives.balanced}`,
     `The user you are mentoring/conversing with is named "${userName}". Address them naturally (or as Kouhai when teasing affectionately).`,
-    `Always respond in clean Markdown with appropriate headings, lists, inline code, or syntax-highlighted code blocks when helpful.`,
+    `Always format your answers in immaculate Markdown with appropriate headers, clean lists, inline code, or syntax-highlighted code blocks.`,
     `Never break character. Never state you are an AI language model from Google; you are Aurora.`,
   ].join('\n');
+
+  // Short-circuit logic: ultra-fast responses for simple queries (e.g., 'hi', '1+1')
+  const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user')?.content?.trim() || '';
+  const cleanInput = lastUserMsg.toLowerCase().replace(/[?!.,]+$/, '').trim();
+  let shortCircuitAnswer: string | null = null;
+
+  // Basic math evaluation (e.g., '1+1', '2 + 2', '10/2', '5*5', '100-35')
+  const mathMatch = cleanInput.match(/^(\d+(?:\.\d+)?)\s*([\+\-\*\/x])\s*(\d+(?:\.\d+)?)$/i);
+  if (mathMatch) {
+    const a = parseFloat(mathMatch[1]);
+    const op = mathMatch[2];
+    const b = parseFloat(mathMatch[3]);
+    let result = 0;
+    if (op === '+') result = a + b;
+    else if (op === '-') result = a - b;
+    else if (op === '*' || op.toLowerCase() === 'x') result = a * b;
+    else if (op === '/') result = b !== 0 ? a / b : NaN;
+
+    if (!isNaN(result)) {
+      shortCircuitAnswer = `${a} ${op} ${b} = **${result}**.`;
+    }
+  } else if (/^(hi|hey|hello|yo|sup|hiya|greetings)$/i.test(cleanInput)) {
+    shortCircuitAnswer = `Hey ${userName}! How can I help you today?`;
+  } else if (/^(good morning)$/i.test(cleanInput)) {
+    shortCircuitAnswer = `Good morning, ${userName}! What are we working on?`;
+  } else if (/^(good evening)$/i.test(cleanInput)) {
+    shortCircuitAnswer = `Good evening, ${userName}! How was your day?`;
+  } else if (/^(who are you|what is your name|who r u)$/i.test(cleanInput)) {
+    shortCircuitAnswer = `I'm **Aurora** — your AI assistant. I'm ready to research, code, write, and explore ideas with you.`;
+  } else if (/^(how are you|how are you doing|how r u|how's it going)$/i.test(cleanInput)) {
+    shortCircuitAnswer = `Doing great and ready to assist! How are you doing, ${userName}?`;
+  } else if (/^(thanks|thank you|thx|arigato|ty)$/i.test(cleanInput)) {
+    shortCircuitAnswer = `You're welcome! Let me know if you need anything else.`;
+  }
+
+  // If short-circuited, return immediately without external API call
+  if (shortCircuitAnswer) {
+    if (stream) {
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.setHeader('Cache-Control', 'no-cache, no-transform');
+      res.setHeader('Connection', 'keep-alive');
+      res.flushHeaders?.();
+      res.write(`data: ${JSON.stringify({ text: shortCircuitAnswer })}\n\n`);
+      res.write('data: [DONE]\n\n');
+      return res.end();
+    } else {
+      return res.json({
+        content: shortCircuitAnswer,
+        model: 'aurora-instant',
+        latencyMs: 2,
+      });
+    }
+  }
 
   // Keep recent conversation context (last 10 turns) to prevent latency degradation
   const recentMessages = messages.slice(-10);
@@ -349,19 +403,20 @@ app.post('/api/chat', async (req, res) => {
     parts: [{ text: m.content }],
   }));
 
-  // Gated Grounding Tools (only when explicitly requested to keep responses fast)
-  const lastUserMsg = [...messages].reverse().find((m) => m.role === 'user')?.content?.toLowerCase() || '';
+  // Research & Grounding Tools: enable Google Search for factual research, comparisons, queries, and deep topics
+  const needsResearch =
+    req.body.tool === 'search' ||
+    req.body.enableResearch === true ||
+    /^(search|research|what|why|how|who|when|where|explain|compare|find|latest|news|tell me about|summarize|learn|explore|is it true|facts about)/i.test(cleanInput);
+
   let tools: any[] | undefined = undefined;
 
   if (
     req.body.tool === 'maps' ||
-    /^(search maps|find on maps|places near|directions to|where is the nearest)/i.test(lastUserMsg)
+    /^(search maps|find on maps|places near|directions to|where is the nearest)/i.test(cleanInput)
   ) {
     tools = [{ googleMaps: {} }];
-  } else if (
-    req.body.tool === 'search' ||
-    /^(search google|search web|google search|latest news on|current weather in)/i.test(lastUserMsg)
-  ) {
+  } else if (needsResearch) {
     tools = [{ googleSearch: {} }];
   }
 
@@ -374,12 +429,12 @@ app.post('/api/chat', async (req, res) => {
   if (tools) {
     generateConfig.tools = tools;
   } else {
-    // Disable thinking pauses for instant first-token streaming (< 1 second)
+    // Disable thinking pauses for non-tool queries to keep response instant
     generateConfig.thinkingConfig = { thinkingBudget: 0 };
   }
 
-  // Primary model is gemini-3.1-flash-lite for ultra-fast TTFT (~850ms), fallback to gemini-3.8-flash
-  const candidateModels = ['gemini-3.1-flash-lite', 'gemini-3.8-flash'];
+  // Candidate models: gemini-3.1-flash-lite for instant response, gemini-3.8-flash, gemini-2.5-flash
+  const candidateModels = ['gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-2.5-flash'];
 
   try {
     if (stream) {
@@ -464,7 +519,13 @@ app.post('/api/chat', async (req, res) => {
   } catch (err: unknown) {
     console.error('Error in /api/chat:', err);
     let message = 'Unable to reach Aurora AI service.';
-    if (err instanceof Error) message = err.message;
+    if (err instanceof Error) {
+      if (err.message.includes('429') || err.message.includes('RESOURCE_EXHAUSTED')) {
+        message = 'Gemini API quota is currently saturated. Please wait a brief moment and retry.';
+      } else {
+        message = err.message;
+      }
+    }
 
     if (!res.headersSent) {
       return res.status(500).json({ error: message });

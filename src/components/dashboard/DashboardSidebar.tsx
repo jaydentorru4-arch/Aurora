@@ -139,27 +139,25 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
   return (
     <>
-      {/* Mobile Backdrop */}
+      {/* Backdrop overlay */}
       {isMobileOpen && (
         <div
-          className="fixed inset-0 bg-black/70 backdrop-blur-xs z-40 lg:hidden animate-fade-in"
+          className="fixed inset-0 bg-black/60 backdrop-blur-xs z-40 animate-fade-in"
           onClick={onCloseMobile}
         />
       )}
 
-      {/* Sidebar Container */}
+      {/* Sidebar Drawer */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 lg:static flex flex-col bg-[#070916] border-r border-white/10 transition-all duration-300 ease-in-out ${
-          isCollapsed ? 'w-20' : 'w-72'
-        } ${isMobileOpen ? 'translate-x-0 w-72' : '-translate-x-full lg:translate-x-0'}`}
+        className={`fixed inset-y-0 left-0 z-50 flex flex-col bg-[#07091E]/95 backdrop-blur-2xl border-r border-white/10 shadow-2xl transition-transform duration-300 ease-in-out w-80 max-w-[85vw] ${
+          isMobileOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}
       >
         {/* Top Header & Brand */}
         <div className="p-4 border-b border-white/10 flex items-center justify-between gap-3 shrink-0">
           <div
             onClick={onBackToHome}
-            className={`flex items-center gap-3 cursor-pointer group min-w-0 ${
-              isCollapsed ? 'justify-center w-full' : ''
-            }`}
+            className="flex items-center gap-3 cursor-pointer group min-w-0"
           >
             <div className="relative w-9 h-9 rounded-xl bg-[#0F1436] border border-[#FF2D2B]/30 flex items-center justify-center p-1.5 shrink-0 group-hover:border-[#FF2D2B] transition-colors shadow-sm">
               <img
@@ -174,37 +172,25 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               />
             </div>
 
-            {!isCollapsed && (
-              <div className="min-w-0">
-                <div className="flex items-center gap-1.5">
-                  <span className="font-bold text-sm tracking-wide text-white group-hover:text-[#60A5FA] transition-colors">
-                    AURORA
-                  </span>
-                  <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#FF2D2B]/20 text-[#FF2D2B] border border-[#FF2D2B]/30 font-semibold">
-                    AI
-                  </span>
-                </div>
-                <p className="text-[11px] text-[#64748B] truncate">Neural Assistant</p>
+            <div className="min-w-0">
+              <div className="flex items-center gap-1.5">
+                <span className="font-extrabold text-sm tracking-[0.2em] text-white group-hover:text-[#60A5FA] transition-colors">
+                  AURORA
+                </span>
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-[#FF2D2B]/20 text-[#FF2D2B] border border-[#FF2D2B]/30 font-semibold">
+                  AI
+                </span>
               </div>
-            )}
+              <p className="text-[11px] text-[#64748B] truncate">Conversation History</p>
+            </div>
           </div>
 
-          {/* Desktop Collapse Toggle */}
-          <button
-            type="button"
-            onClick={onToggleCollapse}
-            aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-            className="hidden lg:flex p-1.5 rounded-lg text-[#94A3B8] hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
-          >
-            {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
-          </button>
-
-          {/* Mobile Close Button */}
+          {/* Close Button */}
           <button
             type="button"
             onClick={onCloseMobile}
-            aria-label="Close mobile sidebar"
-            className="lg:hidden p-1.5 rounded-lg text-[#94A3B8] hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
+            aria-label="Close conversation drawer"
+            className="p-1.5 rounded-lg text-[#94A3B8] hover:text-white hover:bg-white/5 transition-colors cursor-pointer"
           >
             <X className="w-4 h-4" />
           </button>
@@ -466,9 +452,17 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             ) : currentUser ? (
               <div className="flex items-center justify-between px-2 py-1.5 rounded-xl bg-white/[0.03] border border-white/5">
                 <div className="flex items-center gap-2.5 min-w-0">
-                  <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#0B00CF] to-[#FF2D2B] flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm">
-                    {displayName.charAt(0).toUpperCase()}
-                  </div>
+                  {currentUser.avatar ? (
+                    <img
+                      src={currentUser.avatar}
+                      alt={displayName}
+                      className="w-7 h-7 rounded-full object-cover shrink-0 border border-white/20 shadow-sm"
+                    />
+                  ) : (
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#0B00CF] to-[#FF2D2B] flex items-center justify-center text-white font-bold text-xs shrink-0 shadow-sm">
+                      {displayName.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <div className="min-w-0 flex flex-col">
                     <div className="flex items-center gap-1.5">
                       <span className="text-xs font-semibold text-white truncate max-w-[120px]">
@@ -494,20 +488,31 @@ export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 )}
               </div>
             ) : (
-              <div className="flex items-center justify-between gap-2 px-1">
+              <div className="px-1">
                 <button
                   type="button"
                   onClick={() => onOpenAuth?.('login')}
-                  className="flex-1 py-1.5 text-xs text-[#CBD5E1] hover:text-white font-medium rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-center cursor-pointer"
+                  className="w-full py-2 px-3 rounded-xl bg-white hover:bg-slate-100 text-slate-900 font-semibold text-xs flex items-center justify-center gap-2 transition-all cursor-pointer shadow-md active:scale-98"
                 >
-                  Log In
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onOpenAuth?.('signup')}
-                  className="btn-aurora-gradient flex-1 py-1.5 text-xs text-white font-semibold rounded-lg text-center cursor-pointer shadow-sm"
-                >
-                  Sign Up
+                  <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24">
+                    <path
+                      fill="#4285F4"
+                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                    />
+                    <path
+                      fill="#34A853"
+                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                    />
+                    <path
+                      fill="#FBBC05"
+                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
+                    />
+                    <path
+                      fill="#EA4335"
+                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
+                    />
+                  </svg>
+                  <span>Sign in with Google</span>
                 </button>
               </div>
             )}

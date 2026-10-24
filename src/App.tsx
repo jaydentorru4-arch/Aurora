@@ -13,7 +13,7 @@ import { LegalModal } from './components/LegalModals';
 import { Dashboard } from './components/dashboard/Dashboard';
 import { ChatbotWidget } from './components/ChatbotWidget';
 import { UserProfile } from './types/auth';
-import { fetchCurrentUser, logoutUser } from './services/authService';
+import { onAuthProfileChanged, logoutUser } from './services/authService';
 
 export default function App() {
   const getInitialView = (): 'home' | 'dashboard' => {
@@ -48,7 +48,7 @@ export default function App() {
     setChatbotOpen(true);
   };
 
-  // Authenticated User State
+  // Reactive Firebase Auth User State
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(() => {
     try {
       const saved = localStorage.getItem('aurora_current_user');
@@ -57,21 +57,12 @@ export default function App() {
     return null;
   });
 
-  // Authoritatively re-verify session with the server on mount
+  // Listen to Firebase Google Auth state changes
   useEffect(() => {
-    fetchCurrentUser().then((verifiedUser) => {
-      if (verifiedUser) {
-        setCurrentUser(verifiedUser);
-        try {
-          localStorage.setItem('aurora_current_user', JSON.stringify(verifiedUser));
-        } catch {}
-      } else {
-        setCurrentUser(null);
-        try {
-          localStorage.removeItem('aurora_current_user');
-        } catch {}
-      }
+    const unsubscribe = onAuthProfileChanged((verifiedUser) => {
+      setCurrentUser(verifiedUser);
     });
+    return () => unsubscribe();
   }, []);
 
   // Sync with browser navigation

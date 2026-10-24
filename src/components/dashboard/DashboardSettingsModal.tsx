@@ -55,7 +55,7 @@ export const DashboardSettingsModal: React.FC<SettingsModalProps> = ({
       role="dialog"
       aria-modal="true"
     >
-      <div className="relative w-full max-w-lg bg-[#0A0D20] border border-white/10 rounded-2xl shadow-2xl p-6 overflow-hidden max-h-[90vh] flex flex-col">
+      <div className="relative w-full max-w-lg bg-[#080B1F]/90 backdrop-blur-2xl border border-white/15 rounded-3xl shadow-[0_25px_80px_rgba(0,0,0,0.95),inset_0_1px_1px_rgba(255,255,255,0.1)] p-6 overflow-hidden max-h-[90vh] flex flex-col">
         {/* Glow Accent */}
         <div
           className="absolute -top-24 right-0 w-72 h-32 rounded-full blur-[90px] pointer-events-none opacity-30"

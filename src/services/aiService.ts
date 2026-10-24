@@ -10,6 +10,8 @@ export interface SendMessageOptions {
   settings: PersonalitySettings;
   onChunk: (chunkText: string) => void;
   onGrounding?: (sources: GroundingSource[]) => void;
+  enableResearch?: boolean;
+  tool?: 'search' | 'maps';
   signal?: AbortSignal;
 }
 
@@ -18,6 +20,8 @@ export async function streamChatResponse({
   settings,
   onChunk,
   onGrounding,
+  enableResearch,
+  tool,
   signal,
 }: SendMessageOptions): Promise<string> {
   const payload = {
@@ -30,6 +34,8 @@ export async function streamChatResponse({
       intensity: settings.intensity,
       userName: settings.userName,
     },
+    enableResearch,
+    tool,
     stream: true,
   };
 
