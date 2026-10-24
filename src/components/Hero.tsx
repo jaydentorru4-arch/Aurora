@@ -1,15 +1,45 @@
 import React from 'react';
 import { ArrowRight } from 'lucide-react';
 import { ASSETS } from '../assets';
+import { UserProfile } from '../types/auth';
 
 interface HeroProps {
   onOpenAuth: (mode: 'login' | 'signup') => void;
   onExploreGreeting?: () => void;
   onComeSayHi?: () => void;
+  currentUser?: UserProfile | null;
+  onOpenDashboard?: () => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({ onOpenAuth, onExploreGreeting, onComeSayHi }) => {
+export const Hero: React.FC<HeroProps> = ({
+  onOpenAuth,
+  onExploreGreeting,
+  onComeSayHi,
+  currentUser,
+  onOpenDashboard,
+}) => {
   const [bgSrc, setBgSrc] = React.useState(ASSETS.heroBg);
+
+  const handleMeetAurora = () => {
+    if (currentUser) {
+      if (onComeSayHi) onComeSayHi();
+      else if (onExploreGreeting) onExploreGreeting();
+      else if (onOpenDashboard) onOpenDashboard();
+    } else {
+      // Require sign in with Google first before opening
+      onOpenAuth('login');
+    }
+  };
+
+  const handleAlreadyKnowMe = () => {
+    if (currentUser) {
+      if (onOpenDashboard) onOpenDashboard();
+      else if (onComeSayHi) onComeSayHi();
+    } else {
+      // Only users who have signed in can do it
+      onOpenAuth('login');
+    }
+  };
 
   return (
     <section className="relative min-h-[92vh] flex items-center pt-24 pb-16 md:pt-28 md:pb-20 overflow-hidden bg-[#04060F]">
@@ -28,13 +58,8 @@ export const Hero: React.FC<HeroProps> = ({ onOpenAuth, onExploreGreeting, onCom
         />
 
         {/* Ambient Gradient Overlays for Readability & Depth */}
-        {/* Left-to-right dark scrim so text pops clearly */}
         <div className="absolute inset-0 bg-gradient-to-r from-[#04060F] via-[#04060F]/85 md:via-[#04060F]/50 to-transparent z-10" />
-        
-        {/* Bottom smooth fade into next section */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#04060F] via-[#04060F]/30 to-transparent z-10" />
-        
-        {/* Top subtle fade under navbar */}
         <div className="absolute top-0 inset-x-0 h-32 bg-gradient-to-b from-[#04060F]/90 to-transparent z-10" />
       </div>
 
@@ -61,7 +86,8 @@ export const Hero: React.FC<HeroProps> = ({ onOpenAuth, onExploreGreeting, onCom
             {/* CTAs */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
               <button
-                onClick={onComeSayHi || onExploreGreeting}
+                type="button"
+                onClick={handleMeetAurora}
                 className="btn-aurora-gradient px-8 py-4 rounded-xl text-sm font-semibold text-white shadow-2xl flex items-center justify-center gap-2 group cursor-pointer"
               >
                 <span>Come Say Hi</span>
@@ -69,10 +95,12 @@ export const Hero: React.FC<HeroProps> = ({ onOpenAuth, onExploreGreeting, onCom
               </button>
 
               <button
-                onClick={() => onOpenAuth('login')}
+                type="button"
+                onClick={handleAlreadyKnowMe}
+                title={currentUser ? "Go to your Aurora workspace" : "Please sign in to access your saved workspace"}
                 className="px-6 py-4 rounded-xl text-sm font-semibold text-[#CBD5E1] hover:text-white border border-white/20 hover:border-white/40 bg-[#04060F]/60 backdrop-blur-md hover:bg-[#04060F]/80 transition-all duration-200 text-center cursor-pointer shadow-lg"
               >
-                Already know me? Log in
+                {currentUser ? 'Already know me? Open Workspace' : 'Already know me? Sign in'}
               </button>
             </div>
           </div>

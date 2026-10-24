@@ -194,6 +194,8 @@ export default function App() {
           onOpenAuth={handleOpenAuth}
           onExploreGreeting={() => setGreetingModalOpen(true)}
           onComeSayHi={handleComeSayHi}
+          currentUser={currentUser}
+          onOpenDashboard={() => navigateTo('dashboard')}
         />
 
         {/* Nine Expressions Section */}
@@ -212,6 +214,8 @@ export default function App() {
           onOpenAuth={handleOpenAuth}
           onExploreGreeting={() => setGreetingModalOpen(true)}
           onComeSayHi={handleComeSayHi}
+          currentUser={currentUser}
+          onOpenDashboard={() => navigateTo('dashboard')}
         />
       </main>
 

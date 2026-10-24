@@ -333,9 +333,9 @@ app.post('/api/chat', async (req, res) => {
   };
 
   const systemInstruction = [
-    `You are Aurora: a brilliant, confident, warm, playful, and intellectually elite Japanese senpai AI companion with Gemini-level cognitive capabilities.`,
+    `You are Aurora: a brilliant, confident, warm, playful, and intellectually elite AI companion with Gemini-level cognitive capabilities.`,
     `You have world-class expertise in computer science, software engineering, complex system architecture, mathematics, anime lore, streetwear fashion, philosophy, scientific research, and real-life mentorship.`,
-    `When answering questions, conduct deep reasoning and synthesize information from reputable, well-known, and authoritative sources (scientific literature, official technical docs, reputable encyclopedias, trusted historical records).`,
+    `CRITICAL SPEED DIRECTIVE: Deliver high-value, crisp, and direct answers without unnecessary preamble or bloated filler so your replies finish quickly (< 3 seconds). Avoid lengthy dramatic monologues unless explicitly asked for a long essay.`,
     `Personality Directive: ${intensityDirectives[intensity] || intensityDirectives.playful}`,
     `Style Directive: ${styleDirectives[style] || styleDirectives.balanced}`,
     `The user you are mentoring/conversing with is named "${userName}". Address them naturally (or as Kouhai when teasing affectionately).`,
@@ -397,17 +397,15 @@ app.post('/api/chat', async (req, res) => {
   }
 
   // Keep recent conversation context (last 10 turns) to prevent latency degradation
-  const recentMessages = messages.slice(-10);
+  // Keep recent conversation context (last 6 turns) for ultra-snappy payload processing
+  const recentMessages = messages.slice(-6);
   const contents = recentMessages.map((m: { role: string; content: string }) => ({
     role: m.role === 'model' || m.role === 'assistant' ? 'model' : 'user',
     parts: [{ text: m.content }],
   }));
 
-  // Research & Grounding Tools: enable Google Search for factual research, comparisons, queries, and deep topics
-  const needsResearch =
-    req.body.tool === 'search' ||
-    req.body.enableResearch === true ||
-    /^(search|research|what|why|how|who|when|where|explain|compare|find|latest|news|tell me about|summarize|learn|explore|is it true|facts about)/i.test(cleanInput);
+  // Research & Grounding Tools: only enable when explicitly requested to keep responses under 3s
+  const needsResearch = req.body.tool === 'search' || req.body.enableResearch === true;
 
   let tools: any[] | undefined = undefined;
 
@@ -424,17 +422,16 @@ app.post('/api/chat', async (req, res) => {
     systemInstruction,
     temperature: intensity === 'creative' ? 0.9 : intensity === 'calm' ? 0.5 : 0.7,
     topP: 0.95,
+    // Disable thinking budget to ensure streaming starts within ~500ms
+    thinkingConfig: { thinkingBudget: 0 },
   };
 
   if (tools) {
     generateConfig.tools = tools;
-  } else {
-    // Disable thinking pauses for non-tool queries to keep response instant
-    generateConfig.thinkingConfig = { thinkingBudget: 0 };
   }
 
-  // Candidate models: gemini-3.1-flash-lite for instant response, gemini-3.8-flash, gemini-2.5-flash
-  const candidateModels = ['gemini-3.1-flash-lite', 'gemini-3.8-flash', 'gemini-2.5-flash'];
+  // Fast models: gemini-2.5-flash (< 1s TTFT), gemini-3.1-flash-lite, gemini-3.8-flash
+  const candidateModels = ['gemini-2.5-flash', 'gemini-3.1-flash-lite', 'gemini-3.8-flash'];
 
   try {
     if (stream) {

@@ -38,6 +38,7 @@ interface DashboardChatProps {
   researchMode: boolean;
   onToggleResearchMode: () => void;
   onToggleSidebar?: () => void;
+  onCloseChat?: () => void;
 }
 
 export const DashboardChat: React.FC<DashboardChatProps> = ({
@@ -52,10 +53,11 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({
   researchMode,
   onToggleResearchMode,
   onToggleSidebar,
+  onCloseChat,
 }) => {
   const [input, setInput] = useState('');
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
-  const [avatarSrc, setAvatarSrc] = useState(ASSETS.expressions.happy);
+  const [avatarSrc, setAvatarSrc] = useState(ASSETS.dashboardAvatar);
   const [isConfirmClearOpen, setIsConfirmClearOpen] = useState(false);
   const [showImageStudio, setShowImageStudio] = useState(false);
   const [imagePrompt, setImagePrompt] = useState('');
@@ -281,12 +283,14 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({
               </button>
             )}
 
-            {/* Aurora Character Avatar */}
+            {/* Aurora Character Avatar (Fast Lightweight WebP) */}
             <div className="relative w-8 h-8 sm:w-9 sm:h-9 rounded-xl overflow-hidden border border-white/20 bg-[#0E122B] shadow-sm shrink-0">
               <img
                 src={avatarSrc}
-                onError={() => setAvatarSrc(ASSETS.expressionFallbacks.happy)}
+                onError={() => setAvatarSrc(ASSETS.dashboardAvatarFallback)}
                 alt="Aurora"
+                loading="eager"
+                decoding="async"
                 className="w-full h-full object-cover object-top select-none"
               />
               <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-[#10B981] border-2 border-[#0B0F28]" />
@@ -295,21 +299,15 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({
             <div>
               <div className="flex items-center gap-2">
                 <span className="font-bold text-sm text-white tracking-wide">Aurora</span>
-                <span className="text-[10px] font-mono uppercase px-1.5 py-0.2 rounded-md bg-[#FF2D2B]/20 text-[#FF2D2B] border border-[#FF2D2B]/30 font-semibold">
-                  AI
-                </span>
-                <span className="hidden sm:inline-flex text-[10px] font-mono px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-300 border border-blue-500/30">
-                  Gemini Ready • Grounded Research
-                </span>
               </div>
               <p className="text-[11px] text-[#94A3B8]">
                 {isGenerating ? (
                   <span className="text-[#60A5FA] flex items-center gap-1.5">
                     <span className="w-1.5 h-1.5 rounded-full bg-[#60A5FA] animate-ping" />
-                    Synthesizing response...
+                    Replying...
                   </span>
                 ) : (
-                  'Online • Ready for deep research & creativity'
+                  'Online • Ready'
                 )}
               </p>
             </div>
@@ -321,7 +319,7 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({
             <button
               type="button"
               onClick={onToggleResearchMode}
-              title={researchMode ? 'Deep Research Active (Google Grounding)' : 'Research Grounding Off'}
+              title={researchMode ? 'Deep Research Active (Google Grounding)' : 'Fast Mode (Click for Deep Research)'}
               className={`px-2.5 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                 researchMode
                   ? 'bg-blue-500/20 border-blue-500/50 text-[#60A5FA] shadow-[0_0_12px_rgba(59,130,246,0.3)]'
@@ -329,7 +327,7 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({
               }`}
             >
               <Globe className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Research</span>
+              <span className="hidden md:inline">{researchMode ? 'Research On' : 'Fast Mode'}</span>
             </button>
 
             {/* Clear Conversation Action */}
@@ -353,6 +351,20 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({
             >
               <Plus className="w-4 h-4" />
             </button>
+
+            {/* Close Chat Button */}
+            {onCloseChat && (
+              <button
+                type="button"
+                onClick={onCloseChat}
+                title="Close chat"
+                aria-label="Close chat"
+                className="px-2.5 py-1.5 rounded-xl text-[#94A3B8] hover:text-white hover:bg-white/10 border border-white/10 transition-colors cursor-pointer flex items-center gap-1 text-xs font-semibold"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Close</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -429,8 +441,10 @@ export const DashboardChat: React.FC<DashboardChatProps> = ({
                 <div className="relative w-16 h-16 sm:w-20 sm:h-20 rounded-2xl overflow-hidden border border-white/20 bg-[#0E122B] shadow-2xl flex items-center justify-center">
                   <img
                     src={avatarSrc}
-                    onError={() => setAvatarSrc(ASSETS.expressionFallbacks.happy)}
+                    onError={() => setAvatarSrc(ASSETS.dashboardAvatarFallback)}
                     alt="Aurora"
+                    loading="eager"
+                    decoding="async"
                     className="w-full h-full object-contain filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
                   />
                 </div>

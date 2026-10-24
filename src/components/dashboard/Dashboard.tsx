@@ -45,7 +45,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
   const [activeId, setActiveId] = useState<string | null>(() => loadActiveConversationId());
   const [settings, setSettings] = useState<PersonalitySettings>(() => loadSettings());
   const [isGenerating, setIsGenerating] = useState(false);
-  const [researchMode, setResearchMode] = useState<boolean>(true);
+  const [researchMode, setResearchMode] = useState<boolean>(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
   const [isAudioTranscriberOpen, setIsAudioTranscriberOpen] = useState(false);
@@ -669,6 +669,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             researchMode={researchMode}
             onToggleResearchMode={() => setResearchMode((prev) => !prev)}
             onToggleSidebar={() => setIsSidebarOpen((prev) => !prev)}
+            onCloseChat={onBackToHome}
           />
         </div>
       </main>
